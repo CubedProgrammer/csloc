@@ -22,13 +22,14 @@ int cnt_single_file(const char *file)
 				cnt++;
 			ne = 0;
 		}
-		else if(curr != ' ' && curr != '\t')
+		else if(curr != -1 && curr != ' ' && curr != '\t')
 			ne = 1;
 	}
 
 	// if there is not a new line character at the end
 	if(ne)
 		++cnt;
+	fclose(f);
 	return cnt;
 }
 int csloc(const char *dir)
