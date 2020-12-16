@@ -8,7 +8,7 @@ inline
 int cnt_single_file(const char *file)
 {
 	FILE *f = fopen(file, "r");
-	int cnt = 1;
+	int cnt = 0;
 	char curr;
 	int ne = 0;
 
@@ -25,6 +25,10 @@ int cnt_single_file(const char *file)
 		else if(curr != ' ' && curr != '\t')
 			ne = 1;
 	}
+
+	// if there is not a new line character at the end
+	if(ne)
+		++cnt;
 	return cnt;
 }
 int csloc(const char *dir)
