@@ -3,7 +3,7 @@
 #include<string.h>
 #include"get_sub_dir.h"
 #ifndef DEBUG
-inline
+static inline
 #endif
 int cnt_single_file(const char *file)
 {
@@ -38,7 +38,11 @@ int csloc(const char *dir)
 	char subdir[1000];
 	size_t len=strlen(dir), cnt=cnt_sub_dirs(dir);
 	strcpy(subdir, dir);
+#ifdef _WIN32
 	subdir[len]='\\';
+#else
+	subdir[len]='/';
+#endif
 	char **names=malloc(sizeof(char*)*cnt);
 	enum file_or_directory *tps = malloc(cnt * sizeof(enum file_or_directory));
 
