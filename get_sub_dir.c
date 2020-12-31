@@ -21,7 +21,7 @@ int cnt_sub_dirs(const char *dir)
 	HANDLE ff = FindFirstFileA(search, &wff);
 #else
 	DIR *dr = opendir(search);
-	struct dirent *de;
+	struct dirent *de = readdir(dr);
 #endif
 	int cnt=0;
 
@@ -39,9 +39,11 @@ void get_sub_dirs(const char *dir,char *names[],enum file_or_directory fd[])
 {
 	// make the wildcard search
 	size_t len=strlen(dir);
-	char search[len+3];
+	char search[300];
 	strcpy(search, dir);
+#ifdef _WIN32
 	strcpy(search + len, "\\*");
+#endif
 
 	// find data and start looking
 #ifdef _WIN32
@@ -49,7 +51,7 @@ void get_sub_dirs(const char *dir,char *names[],enum file_or_directory fd[])
 	HANDLE ff = FindFirstFileA(search, &wff);
 #else
 	DIR *dr = opendir(search);
-	struct dirent *de;
+	struct dirent *de = readdir(dr);
 #endif
 	size_t cnt=0, fnlen;
 
@@ -81,5 +83,5 @@ void get_sub_dirs(const char *dir,char *names[],enum file_or_directory fd[])
 	while(FindNextFileA(ff, &wff));
 #else
 	while(de = readdir(dr));
-#endif;
+#endif
 }

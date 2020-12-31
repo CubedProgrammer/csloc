@@ -63,7 +63,6 @@ int csloc(const char *dir)
 		if(NFILE==tps[i])
 		{
 			sloc += cnt_single_file(subdir);
-			printf("sloc %d\n", sloc);
 			continue;
 		}
 
@@ -98,7 +97,11 @@ int csloc(const char *dir)
 		currf = stack[--fcnt];
 		len=strlen(currf), cnt=cnt_sub_dirs(currf);
 		strcpy(subdir, currf);
+#ifdef _WIN32
 		subdir[len]='\\';
+#else
+		subdir[len]='/';
+#endif
 
 		// get subdirectories and files
 		names=malloc(sizeof(char*)*cnt);
