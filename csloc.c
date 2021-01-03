@@ -2,6 +2,8 @@
 #include<stdlib.h>
 #include<string.h>
 #include"get_sub_dir.h"
+// show individual files
+int sif;
 #ifndef DEBUG
 static inline
 #endif
@@ -53,8 +55,9 @@ int csloc(const char *dir)
 	size_t fcnt=0, rm=5, olr=3;
 	char **stack=malloc(sizeof(char*)*rm);
 
-	// source lines of code
+	// source lines of code and single file lines
 	int sloc = 0;
+	int sfl;
 
 	// put all subdirectories in
 	for(size_t i = 0; i < cnt; ++i)
@@ -62,7 +65,10 @@ int csloc(const char *dir)
 		strcpy(subdir + len + 1, names[i]);
 		if(NFILE==tps[i])
 		{
-			sloc += cnt_single_file(subdir);
+			sfl = cnt_single_file(subdir);
+			if(sif)
+				printf("File %s has %d source lines of code.\n", names[i], sfl);
+			sloc += sfl;
 			continue;
 		}
 
@@ -114,7 +120,10 @@ int csloc(const char *dir)
 			strcpy(subdir + len + 1, names[i]);
 			if(NFILE==tps[i])
 			{
-				sloc += cnt_single_file(subdir);
+				sfl = cnt_single_file(subdir);
+				if(sif)
+					printf("File %s has %d source lines of code.\n", names[i], sfl);
+				sloc += sfl;
 				continue;
 			}
 
@@ -148,6 +157,16 @@ int main(int argl,char*argv[])
 	if(argl==1)
 		puts("Specify a directory");
 	else
-		printf("All files in %s combined have %d source lines of code.\n",argv[1],csloc(argv[1]));
+	{
+		const char *dir;
+		for(int i = 1; i < argl; ++i)
+		{
+			if(strcmp(argv[i], "-s") == 0)
+				sif = 1;
+			else
+				dir = argv[i];
+		}
+		printf("All files in %s combined have %d source lines of code.\n",dir,csloc(dir));
+	}
 	return 0;
 }
