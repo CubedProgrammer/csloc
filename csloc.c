@@ -4,6 +4,24 @@
 #include"get_sub_dir.h"
 // show individual files
 int sif;
+// specified file extension
+const char *fext = NULL;
+static inline int has_file_extension(const char *fname, const char *ext)
+{
+	if(ext == NULL)
+		return 1;
+	else
+	{
+		size_t flen = strlen(fname), elen = strlen(ext);
+		int status = 0;
+		if(flen > elen)
+		{
+			if(fname[flen - elen - 1] == '.' && strcmp(ext, fname + flen - elen) == 0)
+				status = 1;
+		}
+		return status;
+	}
+}
 #ifndef DEBUG
 static inline
 #endif
@@ -65,10 +83,13 @@ int csloc(const char *dir)
 		strcpy(subdir + len + 1, names[i]);
 		if(NFILE==tps[i])
 		{
-			sfl = cnt_single_file(subdir);
-			if(sif)
-				printf("File %s has %d source lines of code.\n", names[i], sfl);
-			sloc += sfl;
+			if(has_file_extension(names[i],fext))
+			{
+				sfl = cnt_single_file(subdir);
+				if(sif)
+					printf("File %s has %d source lines of code.\n", names[i], sfl);
+				sloc += sfl;
+			}
 			continue;
 		}
 
@@ -98,7 +119,6 @@ int csloc(const char *dir)
 	char *currf;
 	while(fcnt)
 	{
-		fflush(stdout);
 		// get last file
 		currf = stack[--fcnt];
 		len=strlen(currf), cnt=cnt_sub_dirs(currf);
@@ -120,10 +140,13 @@ int csloc(const char *dir)
 			strcpy(subdir + len + 1, names[i]);
 			if(NFILE==tps[i])
 			{
-				sfl = cnt_single_file(subdir);
-				if(sif)
-					printf("File %s has %d source lines of code.\n", names[i], sfl);
-				sloc += sfl;
+				if(has_file_extension(names[i],fext))
+				{
+					sfl = cnt_single_file(subdir);
+					if(sif)
+						printf("File %s has %d source lines of code.\n", names[i], sfl);
+					sloc += sfl;
+				}
 				continue;
 			}
 
@@ -158,15 +181,28 @@ int main(int argl,char*argv[])
 		puts("Specify a directory");
 	else
 	{
-		const char *dir;
+		const char *dir = NULL;
+		int ext = 0;
 		for(int i = 1; i < argl; ++i)
 		{
+			if(ext)
+			{
+				fext = argv[i];
+				ext = 0;
+				continue;
+			}
+
 			if(strcmp(argv[i], "-s") == 0)
 				sif = 1;
+			else if(strcmp(argv[i], "-ext") == 0)
+				ext = 1;
 			else
 				dir = argv[i];
 		}
-		printf("All files in %s combined have %d source lines of code.\n",dir,csloc(dir));
+		if(dir == NULL)
+			puts("Specify a directory dummy.");
+		else
+			printf("All files in %s combined have %d source lines of code.\n",dir,csloc(dir));
 	}
 	return 0;
 }

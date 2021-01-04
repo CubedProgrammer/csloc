@@ -9,10 +9,10 @@
 int cnt_sub_dirs(const char *dir)
 {
 	// make the wildcard search
-	size_t len=strlen(dir);
 	char search[300];
 	strcpy(search, dir);
 #ifdef _WIN32
+	size_t len=strlen(dir);
 	strcpy(search + len, "\\*");
 #endif
 	// find data and start looking
@@ -38,10 +38,10 @@ int cnt_sub_dirs(const char *dir)
 void get_sub_dirs(const char *dir,char *names[],enum file_or_directory fd[])
 {
 	// make the wildcard search
-	size_t len=strlen(dir);
 	char search[300];
 	strcpy(search, dir);
 #ifdef _WIN32
+	size_t len=strlen(dir);
 	strcpy(search + len, "\\*");
 #endif
 
