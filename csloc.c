@@ -5,7 +5,9 @@
 // show individual files
 int sif;
 // specified file extension
-const char *fext = NULL;
+const char **fexts = NULL;
+// number of file extensions to check
+size_t fel;
 static inline int has_file_extension(const char *fname, const char *ext)
 {
 	if(ext == NULL)
@@ -76,6 +78,7 @@ int csloc(const char *dir)
 	// source lines of code and single file lines
 	int sloc = 0;
 	int sfl;
+	int valid;
 
 	// put all subdirectories in
 	for(size_t i = 0; i < cnt; ++i)
@@ -83,7 +86,13 @@ int csloc(const char *dir)
 		strcpy(subdir + len + 1, names[i]);
 		if(NFILE==tps[i])
 		{
-			if(has_file_extension(names[i],fext))
+			valid = fel == 0 ? 1 : 0;
+			for(size_t j = 0; j < fel; ++j)
+			{
+				if(has_file_extension(names[i],fexts[j]))
+					valid++;
+			}
+			if(valid)
 			{
 				sfl = cnt_single_file(subdir);
 				if(sif)
@@ -140,7 +149,13 @@ int csloc(const char *dir)
 			strcpy(subdir + len + 1, names[i]);
 			if(NFILE==tps[i])
 			{
-				if(has_file_extension(names[i],fext))
+				valid = fel == 0 ? 1 : 0;
+				for(size_t j = 0; j < fel; ++j)
+				{
+					if(has_file_extension(names[i],fexts[j]))
+						valid++;
+				}
+				if(valid)
 				{
 					sfl = cnt_single_file(subdir);
 					if(sif)
@@ -187,15 +202,14 @@ int main(int argl,char*argv[])
 		{
 			if(ext)
 			{
-				fext = argv[i];
-				ext = 0;
+				fexts[i - argl + fel] = argv[i];
 				continue;
 			}
 
 			if(strcmp(argv[i], "-s") == 0)
 				sif = 1;
 			else if(strcmp(argv[i], "-ext") == 0)
-				ext = 1;
+				ext = 1, fel = argl - i - 1, fexts = malloc(sizeof(const char*) * fel);
 			else
 				dir = argv[i];
 		}
