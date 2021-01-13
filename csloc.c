@@ -8,6 +8,8 @@ int sif;
 const char **fexts = NULL;
 // number of file extensions to check
 size_t fel;
+// ignore hidden files
+int ihf;
 static inline int has_file_extension(const char *fname, const char *ext)
 {
 	if(ext == NULL)
@@ -84,6 +86,11 @@ int csloc(const char *dir)
 	for(size_t i = 0; i < cnt; ++i)
 	{
 		strcpy(subdir + len + 1, names[i]);
+
+		// get rid of hidden files if enabled
+		if(ihf && names[i][0] == '.')
+			continue;
+
 		if(NFILE==tps[i])
 		{
 			valid = fel == 0 ? 1 : 0;
@@ -147,6 +154,11 @@ int csloc(const char *dir)
 		for(size_t i = 0; i < cnt; ++i)
 		{
 			strcpy(subdir + len + 1, names[i]);
+
+			// get rid of hidden files if enabled
+			if(ihf && names[i][0] == '.')
+				continue;
+
 			if(NFILE==tps[i])
 			{
 				valid = fel == 0 ? 1 : 0;
@@ -208,6 +220,8 @@ int main(int argl,char*argv[])
 
 			if(strcmp(argv[i], "-s") == 0)
 				sif = 1;
+			else if(strcmp(argv[i], "-h") == 0)
+				ihf = 1;
 			else if(strcmp(argv[i], "-ext") == 0)
 				ext = 1, fel = argl - i - 1, fexts = malloc(sizeof(const char*) * fel);
 			else
