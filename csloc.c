@@ -205,7 +205,12 @@ int csloc(const char *dir)
 int main(int argl,char*argv[])
 {
 	if(argl==1)
-		puts("Specify a directory");
+	{
+		puts("Specify a directory.\nCommand line options...\n");
+		puts("-s to show the sloc of individual files.");
+		puts("-h to not count files beginning with a ., such files are considered hidden on linux.");
+		puts("-ext to specify file extensions to count, this option must come last, as all other args after it are considered to be in the list of file extensions.");
+	}
 	else
 	{
 		const char *dir = NULL;
@@ -228,7 +233,7 @@ int main(int argl,char*argv[])
 				dir = argv[i];
 		}
 		if(dir == NULL)
-			puts("Specify a directory dummy.");
+			puts("Specify a directory");
 		else
 			printf("All files in %s combined have %d source lines of code.\n",dir,csloc(dir));
 	}
