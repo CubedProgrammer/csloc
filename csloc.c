@@ -29,7 +29,7 @@ static inline int has_file_extension(const char *fname, const char *ext)
 #ifndef DEBUG
 static inline
 #endif
-int cnt_single_file(const char *file)
+int cnt_single_file(const char *file, size_t cr)
 {
 	FILE *f = fopen(file, "r");
 	int cnt = 0;
@@ -42,12 +42,12 @@ int cnt_single_file(const char *file)
 		curr = fgetc(f);
 		if(curr == '\n')
 		{
-			if(ne)
+			if(ne >= cr)
 				cnt++;
 			ne = 0;
 		}
 		else if(curr != -1 && curr != ' ' && curr != '\t')
-			ne = 1;
+			++ne;
 	}
 
 	// if there is not a new line character at the end
@@ -56,7 +56,7 @@ int cnt_single_file(const char *file)
 	fclose(f);
 	return cnt;
 }
-int csloc(const char *dir)
+int csloc(const char *dir, size_t cr)
 {
 	// prepare to get the files and subdirectories
 	char subdir[1000];
@@ -101,7 +101,7 @@ int csloc(const char *dir)
 			}
 			if(valid)
 			{
-				sfl = cnt_single_file(subdir);
+				sfl = cnt_single_file(subdir, cr);
 				if(sif)
 					printf("File %s has %d source lines of code.\n", names[i], sfl);
 				sloc += sfl;
@@ -169,7 +169,7 @@ int csloc(const char *dir)
 				}
 				if(valid)
 				{
-					sfl = cnt_single_file(subdir);
+					sfl = cnt_single_file(subdir, cr);
 					if(sif)
 						printf("File %s has %d source lines of code.\n", names[i], sfl);
 					sloc += sfl;
@@ -209,12 +209,14 @@ int main(int argl,char*argv[])
 		puts("Specify a directory.\nCommand line options...\n");
 		puts("-s to show the sloc of individual files.");
 		puts("-h to not count files beginning with a ., such files are considered hidden on linux.");
+		puts("-cNUM specifies that NUM non-whitespace characters are required to count as a valid line.");
 		puts("-ext to specify file extensions to count, this option must come last, as all other args after it are considered to be in the list of file extensions.");
 	}
 	else
 	{
 		const char *dir = NULL;
 		int ext = 0;
+		size_t cr = 1;
 		for(int i = 1; i < argl; ++i)
 		{
 			if(ext)
@@ -229,13 +231,15 @@ int main(int argl,char*argv[])
 				ihf = 1;
 			else if(strcmp(argv[i], "-ext") == 0)
 				ext = 1, fel = argl - i - 1, fexts = malloc(sizeof(const char*) * fel);
+			else if(strlen(argv[i]) > 2 && argv[i][0] == '-' && argv[i][1] == 'c')
+				cr = atoi(argv[i] + 2);
 			else
 				dir = argv[i];
 		}
 		if(dir == NULL)
 			puts("Specify a directory");
 		else
-			printf("All files in %s combined have %d source lines of code.\n",dir,csloc(dir));
+			printf("All files in %s combined have %d source lines of code.\n",dir,csloc(dir, cr));
 	}
 	return 0;
 }
