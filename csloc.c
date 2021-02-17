@@ -1,15 +1,8 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
+#include"csloc.h"
 #include"get_sub_dir.h"
-// show individual files
-int sif;
-// specified file extension
-const char **fexts = NULL;
-// number of file extensions to check
-size_t fel;
-// ignore hidden files
-int ihf;
 static inline int has_file_extension(const char *fname, const char *ext)
 {
 	if(ext == NULL)
@@ -51,12 +44,12 @@ int cnt_single_file(const char *file, size_t cr)
 	}
 
 	// if there is not a new line character at the end
-	if(ne)
+	if(ne >= cr)
 		++cnt;
 	fclose(f);
 	return cnt;
 }
-int csloc(const char *dir, size_t cr)
+int csloc(const char *dir, size_t cr, int sif, int ihf, const char *const*fexts, size_t fel)
 {
 	// prepare to get the files and subdirectories
 	char subdir[1000];
@@ -214,6 +207,14 @@ int main(int argl,char*argv[])
 	}
 	else
 	{
+		// show individual files
+		int sif = 0;
+		// specified file extension
+		const char **fexts = NULL;
+		// number of file extensions to check
+		size_t fel = 0;
+		// ignore hidden files
+		int ihf = 0;
 		const char *dir = NULL;
 		int ext = 0;
 		size_t cr = 1;
@@ -239,7 +240,7 @@ int main(int argl,char*argv[])
 		if(dir == NULL)
 			puts("Specify a directory");
 		else
-			printf("All files in %s combined have %d source lines of code.\n",dir,csloc(dir, cr));
+			printf("All files in %s combined have %d source lines of code.\n",dir,csloc(dir, cr, sif, ihf, fexts, fel));
 	}
 	return 0;
 }
