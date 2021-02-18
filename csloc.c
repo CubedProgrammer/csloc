@@ -49,10 +49,15 @@ int cnt_single_file(const char *file, size_t cr)
 	fclose(f);
 	return cnt;
 }
-int csloc(const char *dir, size_t cr, int sif, int ihf, const char *const*fexts, size_t fel)
+#ifdef _WIN32
+long long
+#else
+long
+#endif
+csloc(const char *dir, size_t cr, int sif, int ihf, const char *const*fexts, size_t fel)
 {
 	// prepare to get the files and subdirectories
-	char subdir[1000];
+	char *subdir = malloc(100000);
 	size_t len=strlen(dir), cnt=cnt_sub_dirs(dir);
 	strcpy(subdir, dir);
 #ifdef _WIN32
@@ -71,7 +76,11 @@ int csloc(const char *dir, size_t cr, int sif, int ihf, const char *const*fexts,
 	char **stack=malloc(sizeof(char*)*rm);
 
 	// source lines of code and single file lines
-	int sloc = 0;
+#ifndef _WIN32
+	long sloc = 0;
+#else
+	long long sloc = 0;
+#endif
 	int sfl;
 	int valid;
 
@@ -193,6 +202,8 @@ int csloc(const char *dir, size_t cr, int sif, int ihf, const char *const*fexts,
 		free(tps);
 		free(currf);
 	}
+	free(stack);
+	free(subdir);
 	return sloc;
 }
 int main(int argl,char*argv[])
@@ -240,7 +251,9 @@ int main(int argl,char*argv[])
 		if(dir == NULL)
 			puts("Specify a directory");
 		else
-			printf("All files in %s combined have %d source lines of code.\n",dir,csloc(dir, cr, sif, ihf, fexts, fel));
+			printf("All files in %s combined have %ld source lines of code.\n",dir,csloc(dir, cr, sif, ihf, fexts, fel));
+		if(fexts)
+			free(fexts);
 	}
 	return 0;
 }
