@@ -3,3 +3,11 @@ Counts lines of code recursively in a directory, only works on windows and linux
 
 On windows? You're in luck! Prebuilt executable should be in releases, if I remember, but that is a big if.
 On ubuntu? You're in luck! Prebuilt executable is in releases.
+
+This repository can now be configured to be built into a shared library, include csloc.h in your code to use it.
+
+gcc -O3 -c csloc.c -fPIC
+
+gcc -O3 -c get_sub_dir.c -fPIC
+
+gcc -shared -o libcsloc csloc.o get_sub_dir.o
