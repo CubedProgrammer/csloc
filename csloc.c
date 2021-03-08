@@ -19,10 +19,12 @@ static inline int has_file_extension(const char *fname, const char *ext)
 		return status;
 	}
 }
-#ifndef DEBUG
-static inline
+#ifdef _WIN32
+long long
+#else
+long
 #endif
-int cnt_single_file(const char *file, size_t cr)
+cnt_single_file(const char *file, size_t cr)
 {
 	FILE *f = fopen(file, "r");
 	int cnt = 0;
@@ -39,7 +41,7 @@ int cnt_single_file(const char *file, size_t cr)
 				cnt++;
 			ne = 0;
 		}
-		else if(curr != -1 && curr != ' ' && curr != '\t')
+		else if(curr != -1 && curr != ' ' && curr != '\t' && curr != '\r')
 			++ne;
 	}
 

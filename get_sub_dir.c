@@ -27,11 +27,13 @@ int cnt_sub_dirs(const char *dir)
 
 	// keep looking while it can find more
 	do
-		++cnt;
+		++cnt
 #ifdef _WIN32
+		;
 	while(FindNextFileA(ff, &wff));
 #else
-	while(de = readdir(dr));
+		, de = readdir(dr);
+	while(de);
 #endif
 	return cnt;
 }
@@ -78,10 +80,13 @@ void get_sub_dirs(const char *dir,char *names[],enum file_or_directory fd[])
 		else
 			fd[cnt]=NFILE;
 		++cnt;
+#ifdef __linux__
+		de = readdir(dr);
+#endif
 	}
 #ifdef _WIN32
 	while(FindNextFileA(ff, &wff));
 #else
-	while(de = readdir(dr));
+	while(de);
 #endif
 }
