@@ -4,8 +4,6 @@ Counts lines of code recursively in a directory, only works on windows and linux
 On windows? You're in luck! Prebuilt executable should be in releases, if I remember, but that is a big if.
 On ubuntu? You're in luck! Prebuilt executable is in releases.
 
-Note, the carridge return \\r character is not counted as whitespace and can mess up counting on windows.
-
 This repository can now be configured to be built into a shared library, include csloc.h in your code to use it.
 
 gcc -O3 -c csloc.c -fPIC
