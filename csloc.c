@@ -60,7 +60,7 @@ csloc(const char *dir, size_t cr, int sif, int ihf, const char *const*fexts, siz
 {
 	// prepare to get the files and subdirectories
 	char *subdir = malloc(100000);
-	size_t len=strlen(dir), cnt=cnt_sub_dirs(dir);
+	size_t len=strlen(dir), cnt=csloc____cnt_sub_dirs(dir);
 	strcpy(subdir, dir);
 #ifdef _WIN32
 	subdir[len]='\\';
@@ -68,10 +68,10 @@ csloc(const char *dir, size_t cr, int sif, int ihf, const char *const*fexts, siz
 	subdir[len]='/';
 #endif
 	char **names=malloc(sizeof(char*)*cnt);
-	enum file_or_directory *tps = malloc(cnt * sizeof(enum file_or_directory));
+	enum cfs____file_or_directory *tps = malloc(cnt * sizeof(enum cfs____file_or_directory));
 
 	// get the files and subdirectories
-	get_sub_dirs(dir, names, tps);
+	csloc____get_sub_dirs(dir, names, tps);
 
 	// set up stack for simulating recursion
 	size_t fcnt=0, rm=5, olr=3;
@@ -141,7 +141,7 @@ csloc(const char *dir, size_t cr, int sif, int ihf, const char *const*fexts, siz
 	{
 		// get last file
 		currf = stack[--fcnt];
-		len=strlen(currf), cnt=cnt_sub_dirs(currf);
+		len=strlen(currf), cnt=csloc____cnt_sub_dirs(currf);
 		strcpy(subdir, currf);
 #ifdef _WIN32
 		subdir[len]='\\';
@@ -151,8 +151,8 @@ csloc(const char *dir, size_t cr, int sif, int ihf, const char *const*fexts, siz
 
 		// get subdirectories and files
 		names=malloc(sizeof(char*)*cnt);
-		tps = malloc(cnt * sizeof(enum file_or_directory));
-		get_sub_dirs(currf, names, tps);
+		tps = malloc(cnt * sizeof(enum cfs____file_or_directory));
+		csloc____get_sub_dirs(currf, names, tps);
 
 		// put all subdirectories in
 		for(size_t i = 0; i < cnt; ++i)
