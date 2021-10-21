@@ -228,7 +228,7 @@ int main(int argl,char*argv[])
 		size_t fel = 0;
 		// ignore hidden files
 		int ihf = 0;
-		const char *dir = NULL;
+		char *dir = NULL;
 		int ext = 0;
 		size_t cr = 1;
 		for(int i = 1; i < argl; ++i)
@@ -239,21 +239,36 @@ int main(int argl,char*argv[])
 				continue;
 			}
 
-			if(strcmp(argv[i], "-s") == 0)
-				sif = 1;
-			else if(strcmp(argv[i], "-h") == 0)
-				ihf = 1;
-			else if(strcmp(argv[i], "-ext") == 0)
-				ext = 1, fel = argl - i - 1, fexts = malloc(sizeof(const char*) * fel);
-			else if(strlen(argv[i]) > 2 && argv[i][0] == '-' && argv[i][1] == 'c')
-				cr = atoi(argv[i] + 2);
+			if(argv[i][0] == '-')
+			{
+				if(strcmp(argv[i], "-ext") == 0)
+					ext = 1, fel = argl - i - 1, fexts = malloc(sizeof(const char*) * fel);
+				else if(strlen(argv[i]) > 2 && argv[i][1] == 'c')
+					cr = atoi(argv[i] + 2);
+				else
+				{
+					if(strchr(argv[i], 's') != NULL)
+						sif = 1;
+					if(strchr(argv[i], 'h') != NULL)
+						ihf = 1;
+				}
+			}
 			else
 				dir = argv[i];
 		}
 		if(dir == NULL)
 			puts("Specify a directory");
 		else
+		{
+			int dl = strlen(dir);
+#ifdef _WIN32
+			if(dir[dl - 1] == '\\')
+#else
+			if(dir[dl - 1] == '/')
+#endif
+				dir[dl - 1] = '\0';
 			printf("All files in %s combined have %ld source lines of code.\n",dir,csloc(dir, cr, sif, ihf, fexts, fel));
+		}
 		if(fexts)
 			free(fexts);
 	}
