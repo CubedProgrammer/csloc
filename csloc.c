@@ -3,6 +3,10 @@
 #include<string.h>
 #include"csloc.h"
 #include"get_sub_dir.h"
+#ifdef _WIN32
+#include<windows.h>
+#else
+#endif
 static inline int has_file_extension(const char *fname, const char *ext)
 {
 	if(ext == NULL)
@@ -267,7 +271,17 @@ int main(int argl,char*argv[])
 			if(dir[dl - 1] == '/')
 #endif
 				dir[dl - 1] = '\0';
-			printf("All files in %s combined have %ld source lines of code.\n",dir,csloc(dir, cr, sif, ihf, fexts, fel));
+#ifdef _WIN32
+			int isdir = GetFileAttributesA(dir) & FILE_ATTRIBUTE_DIRECTORY;
+#else
+			struct stat fstat;
+			stat(dir, &fstat);
+			int isdir = S_ISDIR(fstat.st_mode);
+#endif
+			if(isdir)
+				printf("All files in %s combined have %ld source lines of code.\n",dir,csloc(dir, cr, sif, ihf, fexts, fel));
+			else
+				printf("The file %s has %ld source lines of code.\n",dir,cnt_single_file(dir, cr));
 		}
 		if(fexts)
 			free(fexts);
