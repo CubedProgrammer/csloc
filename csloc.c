@@ -235,6 +235,7 @@ int main(int argl,char*argv[])
 		char *dir = NULL;
 		int ext = 0;
 		size_t cr = 1;
+		char *cp;
 		for(int i = 1; i < argl; ++i)
 		{
 			if(ext)
@@ -247,14 +248,15 @@ int main(int argl,char*argv[])
 			{
 				if(strcmp(argv[i], "-ext") == 0)
 					ext = 1, fel = argl - i - 1, fexts = malloc(sizeof(const char*) * fel);
-				else if(strlen(argv[i]) > 2 && argv[i][1] == 'c')
-					cr = atoi(argv[i] + 2);
 				else
 				{
 					if(strchr(argv[i], 's') != NULL)
 						sif = 1;
 					if(strchr(argv[i], 'h') != NULL)
 						ihf = 1;
+					cp = strchr(argv[i], 'c');
+					if(cp != NULL)
+						cr = atoi(cp + 1);
 				}
 			}
 			else
