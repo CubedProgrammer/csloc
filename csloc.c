@@ -6,6 +6,7 @@
 #ifdef _WIN32
 #include<windows.h>
 #else
+#include<sys/stat.h>
 #endif
 static inline int has_file_extension(const char *fname, const char *ext)
 {
