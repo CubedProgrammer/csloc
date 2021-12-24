@@ -65,6 +65,7 @@ csloc(const char *dir, size_t cr, int sif, int ihf, const char *const*fexts, siz
 {
 	// prepare to get the files and subdirectories
 	char *subdir = malloc(100000);
+	csloc_check_pointer(subdir);
 	size_t len=strlen(dir), cnt=csloc____cnt_sub_dirs(dir);
 	strcpy(subdir, dir);
 #ifdef _WIN32
@@ -73,7 +74,9 @@ csloc(const char *dir, size_t cr, int sif, int ihf, const char *const*fexts, siz
 	subdir[len]='/';
 #endif
 	char **names=malloc(sizeof(char*)*cnt);
+	csloc_check_pointer(names);
 	enum cfs____file_or_directory *tps = malloc(cnt * sizeof(enum cfs____file_or_directory));
+	csloc_check_pointer(tps);
 
 	// get the files and subdirectories
 	csloc____get_sub_dirs(dir, names, tps);
@@ -81,6 +84,7 @@ csloc(const char *dir, size_t cr, int sif, int ihf, const char *const*fexts, siz
 	// set up stack for simulating recursion
 	size_t fcnt=0, rm=5, olr=3;
 	char **stack=malloc(sizeof(char*)*rm);
+	csloc_check_pointer(stack);
 
 	// source lines of code and single file lines
 #ifndef _WIN32
@@ -125,6 +129,7 @@ csloc(const char *dir, size_t cr, int sif, int ihf, const char *const*fexts, siz
 		if(fcnt==rm)
 		{
 			stack=realloc(stack, (rm+olr)*sizeof(char*));
+			csloc_check_pointer(stack);
 			fcnt=olr;
 			olr=rm;
 			rm+=fcnt;
@@ -132,6 +137,7 @@ csloc(const char *dir, size_t cr, int sif, int ihf, const char *const*fexts, siz
 		}
 
 		stack[fcnt]=malloc(len + strlen(names[i]) + 2);
+		csloc_check_pointer(stack[fcnt]);
 		strcpy(stack[fcnt], subdir);
 		fcnt++;
 		free(names[i]);
@@ -156,7 +162,9 @@ csloc(const char *dir, size_t cr, int sif, int ihf, const char *const*fexts, siz
 
 		// get subdirectories and files
 		names=malloc(sizeof(char*)*cnt);
+		csloc_check_pointer(names);
 		tps = malloc(cnt * sizeof(enum cfs____file_or_directory));
+		csloc_check_pointer(tps);
 		csloc____get_sub_dirs(currf, names, tps);
 
 		// put all subdirectories in
@@ -193,6 +201,7 @@ csloc(const char *dir, size_t cr, int sif, int ihf, const char *const*fexts, siz
 			if(fcnt==rm)
 			{
 				stack=realloc(stack, (rm+olr)*sizeof(char*));
+				csloc_check_pointer(stack);
 				fcnt=olr;
 				olr=rm;
 				rm+=fcnt;
@@ -200,6 +209,7 @@ csloc(const char *dir, size_t cr, int sif, int ihf, const char *const*fexts, siz
 			}
 
 			stack[fcnt]=malloc(len + strlen(names[i]) + 2);
+			csloc_check_pointer(stack[fcnt]);
 			strcpy(stack[fcnt], subdir);
 			fcnt++;
 			free(names[i]);
@@ -248,7 +258,11 @@ int main(int argl,char*argv[])
 			if(argv[i][0] == '-')
 			{
 				if(strcmp(argv[i], "-ext") == 0)
-					ext = 1, fel = argl - i - 1, fexts = malloc(sizeof(const char*) * fel);
+				{
+					ext = 1, fel = argl - i - 1;
+					fexts = malloc(sizeof(const char*) * fel);
+					csloc_check_pointer(fexts);
+				}
 				else
 				{
 					if(strchr(argv[i], 's') != NULL)

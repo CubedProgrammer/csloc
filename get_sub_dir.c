@@ -20,7 +20,9 @@ void csloc____sort_dir_entries(size_t sz, const char *fnames[], enum cfs____file
 	size_t l, r;
 	size_t indx, indy, indz;
 	const char **auxn = malloc(sz * sizeof(const char*));
+	csloc_check_pointer(auxn);
 	enum cfs____file_or_directory *auxt = malloc(sz * sizeof(enum cfs____file_or_directory));
+	csloc_check_pointer(auxt);
 	char status;
 	while(ssz)
 	{
@@ -171,6 +173,7 @@ void csloc____get_sub_dirs(const char *dir,char *names[],enum cfs____file_or_dir
 		fnlen = strlen(de->d_name);
 #endif
 		names[cnt]=malloc(fnlen + sizeof(char));
+		csloc_check_pointer(names[cnt]);
 #ifdef _WIN32
 		strcpy(names[cnt], wff.cFileName);
 #else
