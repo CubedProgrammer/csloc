@@ -235,6 +235,7 @@ int main(int argl,char*argv[])
 	}
 	else
 	{
+		setvbuf(stderr, NULL, _IONBF, 0);
 		// show individual files
 		int sif = 0;
 		// specified file extension
@@ -281,13 +282,6 @@ int main(int argl,char*argv[])
 			puts("Specify a directory");
 		else
 		{
-			int dl = strlen(dir);
-#ifdef _WIN32
-			if(dir[dl - 1] == '\\')
-#else
-			if(dir[dl - 1] == '/')
-#endif
-				dir[dl - 1] = '\0';
 #ifdef _WIN32
 			int isdir = GetFileAttributesA(dir) & FILE_ATTRIBUTE_DIRECTORY;
 #else
@@ -295,6 +289,13 @@ int main(int argl,char*argv[])
 			stat(dir, &fstat);
 			int isdir = S_ISDIR(fstat.st_mode);
 #endif
+			int dl = strlen(dir);
+#ifdef _WIN32
+			if(dir[dl - 1] == '\\')
+#else
+			if(dl > 1 && dir[dl - 1] == '/')
+#endif
+				dir[dl - 1] = '\0';
 			if(isdir)
 				printf("All files in %s combined have %ld source lines of code.\n",dir,csloc(dir, cr, sif, ihf, fexts, fel));
 			else
