@@ -244,6 +244,7 @@ int main(int argl,char*argv[])
 		size_t fel = 0;
 		// ignore hidden files
 		int ihf = 0;
+		int quiet = 0;
 		char *dir = NULL;
 		int ext = 0;
 		size_t cr = 1;
@@ -270,6 +271,8 @@ int main(int argl,char*argv[])
 						sif = 1;
 					if(strchr(argv[i], 'h') != NULL)
 						ihf = 1;
+					if(strchr(argv[i], 'q') != NULL)
+						quiet = 1;
 					cp = strchr(argv[i], 'c');
 					if(cp != NULL)
 						cr = atoi(cp + 1);
@@ -296,10 +299,15 @@ int main(int argl,char*argv[])
 			if(dl > 1 && dir[dl - 1] == '/')
 #endif
 				dir[dl - 1] = '\0';
-			if(isdir)
-				printf("All files in %s combined have %ld source lines of code.\n",dir,csloc(dir, cr, sif, ihf, fexts, fel));
+			if(quiet)
+				printf("%ld\n", isdir ? csloc(dir, cr, sif, ihf, fexts, fel) : cnt_single_file(dir, cr));
 			else
-				printf("The file %s has %ld source lines of code.\n",dir,cnt_single_file(dir, cr));
+			{
+				if(isdir)
+					printf("All files in %s combined have %ld source lines of code.\n",dir,csloc(dir, cr, sif, ihf, fexts, fel));
+				else
+					printf("The file %s has %ld source lines of code.\n",dir,cnt_single_file(dir, cr));
+			}
 		}
 		if(fexts)
 			free(fexts);
