@@ -35,6 +35,7 @@ cnt_single_file(const char *file, size_t cr)
 	int cnt = 0;
 	char curr;
 	int ne = 0;
+	cr += cr == 0;
 
 	// read the file
 	while(feof(f) == 0)
@@ -61,7 +62,7 @@ long long
 #else
 long
 #endif
-csloc(const char *dir, size_t cr, int sif, int ihf, const char *const*fexts, size_t fel)
+csloc(const char *dir, size_t cr, int sif, int ihf, int quiet, const char *const*fexts, size_t fel)
 {
 	// prepare to get the files and subdirectories
 	char *subdir = malloc(100000);
@@ -188,7 +189,12 @@ csloc(const char *dir, size_t cr, int sif, int ihf, const char *const*fexts, siz
 				{
 					sfl = cnt_single_file(subdir, cr);
 					if(sif)
-						printf("File %s has %d source lines of code.\n", names[i], sfl);
+					{
+						if(quiet)
+							printf("%s %d\n", subdir, sfl);
+						else
+							printf("File %s has %d source lines of code.\n", subdir, sfl);
+					}
 					sloc += sfl;
 				}
 				continue;
@@ -231,11 +237,13 @@ int main(int argl,char*argv[])
 		puts("-s to show the sloc of individual files.");
 		puts("-h to not count files beginning with a ., such files are considered hidden on linux.");
 		puts("-cNUM specifies that NUM non-whitespace characters are required to count as a valid line.");
+		puts("-q to not output complete sentences.");
 		puts("-ext to specify file extensions to count, this option must come last, as all other args after it are considered to be in the list of file extensions.");
 	}
 	else
 	{
 		setvbuf(stderr, NULL, _IONBF, 0);
+		setvbuf(stdout, NULL, _IONBF, 0);
 		// show individual files
 		int sif = 0;
 		// specified file extension
@@ -282,7 +290,7 @@ int main(int argl,char*argv[])
 				dir = argv[i];
 		}
 		if(dir == NULL)
-			puts("Specify a directory");
+			puts("Specify a directory, run with no arguments for help message.");
 		else
 		{
 #ifdef _WIN32
@@ -300,11 +308,11 @@ int main(int argl,char*argv[])
 #endif
 				dir[dl - 1] = '\0';
 			if(quiet)
-				printf("%ld\n", isdir ? csloc(dir, cr, sif, ihf, fexts, fel) : cnt_single_file(dir, cr));
+				printf("%ld\n", isdir ? csloc(dir, cr, sif, ihf, quiet, fexts, fel) : cnt_single_file(dir, cr));
 			else
 			{
 				if(isdir)
-					printf("All files in %s combined have %ld source lines of code.\n",dir,csloc(dir, cr, sif, ihf, fexts, fel));
+					printf("All files in %s combined have %ld source lines of code.\n",dir,csloc(dir, cr, sif, ihf, quiet, fexts, fel));
 				else
 					printf("The file %s has %ld source lines of code.\n",dir,cnt_single_file(dir, cr));
 			}

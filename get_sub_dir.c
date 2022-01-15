@@ -141,13 +141,14 @@ int csloc____cnt_sub_dirs(const char *dir)
 #else
 		, de = readdir(dr);
 	while(de);
+	closedir(dr);
 #endif
 	return cnt;
 }
 void csloc____get_sub_dirs(const char *dir,char *names[],enum cfs____file_or_directory fd[])
 {
 	// make the wildcard search
-	char search[300];
+	char search[3000];
 	strcpy(search, dir);
 #ifdef _WIN32
 	size_t len=strlen(dir);
@@ -160,7 +161,9 @@ void csloc____get_sub_dirs(const char *dir,char *names[],enum cfs____file_or_dir
 	HANDLE ff = FindFirstFileA(search, &wff);
 #else
 	DIR *dr = opendir(search);
+	csloc_check_pointer(dr);
 	struct dirent *de = readdir(dr);
+	csloc_check_pointer(de);
 #endif
 	size_t cnt=0, fnlen;
 
@@ -188,7 +191,7 @@ void csloc____get_sub_dirs(const char *dir,char *names[],enum cfs____file_or_dir
 		else
 			fd[cnt]=NFILE;
 		++cnt;
-#ifdef __linux__
+#ifndef _WIN32
 		de = readdir(dr);
 #endif
 	}
@@ -196,6 +199,7 @@ void csloc____get_sub_dirs(const char *dir,char *names[],enum cfs____file_or_dir
 	while(FindNextFileA(ff, &wff));
 #else
 	while(de);
+	closedir(dr);
 	csloc____sort_dir_entries(cnt, (const char **)names, fd);
 #endif
 }
