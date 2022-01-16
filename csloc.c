@@ -139,7 +139,17 @@ csloc(const char *dir, size_t cr, int sif, int ihf, int quiet, const char *const
 				valid = fel == 0 ? 1 : 0;
 				for(size_t j = 0; j < fel; ++j)
 				{
-					if(has_file_extension(names[i],fexts[j]))
+					if(fexts[j][0] == '!')
+					{
+						if(!has_file_extension(names[i],fexts[j]+1))
+							valid++;
+						else
+						{
+							valid = 0;
+							j = 999999;
+						}
+					}
+					else if(has_file_extension(names[i],fexts[j]))
 						valid++;
 				}
 				if(valid)
@@ -195,7 +205,9 @@ int main(int argl,char*argv[])
 		puts("-h to not count files beginning with a ., such files are considered hidden on linux.");
 		puts("-cNUM specifies that NUM non-whitespace characters are required to count as a valid line.");
 		puts("-q to not output complete sentences.");
-		puts("-ext to specify file extensions to count, this option must come last, as all other args after it are considered to be in the list of file extensions.");
+		puts("-ext to specify file extensions to count, without the . in the front.");
+		puts("This option must come last, as all other args after it are considered to be in the list of file extensions.");
+		puts("Add ! in front of an extension to forbid counting all files with that extension.");
 	}
 	else
 	{
