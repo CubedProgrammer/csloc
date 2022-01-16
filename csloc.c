@@ -67,20 +67,22 @@ csloc(const char *dir, size_t cr, int sif, int ihf, int quiet, const char *const
 	// prepare to get the files and subdirectories
 	char *subdir = malloc(100000);
 	csloc_check_pointer(subdir);
-	size_t len=strlen(dir), cnt=csloc____cnt_sub_dirs(dir);
+	size_t len=strlen(dir), cnt=0;//csloc____cnt_sub_dirs(dir);
 	strcpy(subdir, dir);
 #ifdef _WIN32
 	subdir[len]='\\';
 #else
 	subdir[len]='/';
 #endif
-	char **names=malloc(sizeof(char*)*cnt);
+	char **names;
+	enum cfs____file_or_directory *tps;
+	/*char **names=malloc(sizeof(char*)*cnt);
 	csloc_check_pointer(names);
 	enum cfs____file_or_directory *tps = malloc(cnt * sizeof(enum cfs____file_or_directory));
 	csloc_check_pointer(tps);
 
 	// get the files and subdirectories
-	csloc____get_sub_dirs(dir, names, tps);
+	csloc____get_sub_dirs(dir, names, tps);*/
 
 	// set up stack for simulating recursion
 	size_t fcnt=0, rm=5, olr=3;
@@ -96,56 +98,11 @@ csloc(const char *dir, size_t cr, int sif, int ihf, int quiet, const char *const
 	int sfl;
 	int valid;
 
-	// put all subdirectories in
-	for(size_t i = 0; i < cnt; ++i)
-	{
-		strcpy(subdir + len + 1, names[i]);
-
-		// get rid of hidden files if enabled
-		if(ihf && names[i][0] == '.')
-			continue;
-
-		if(NFILE==tps[i])
-		{
-			valid = fel == 0 ? 1 : 0;
-			for(size_t j = 0; j < fel; ++j)
-			{
-				if(has_file_extension(names[i],fexts[j]))
-					valid++;
-			}
-			if(valid)
-			{
-				sfl = cnt_single_file(subdir, cr);
-				if(sif)
-					printf("File %s has %d source lines of code.\n", names[i], sfl);
-				sloc += sfl;
-			}
-			continue;
-		}
-
-		// get rid of parent and self
-		if(strcmp(".", names[i]) == 0 || strcmp("..", names[i]) == 0)
-			continue;
-
-		if(fcnt==rm)
-		{
-			stack=realloc(stack, (rm+olr)*sizeof(char*));
-			csloc_check_pointer(stack);
-			fcnt=olr;
-			olr=rm;
-			rm+=fcnt;
-			fcnt=olr;
-		}
-
-		stack[fcnt]=malloc(len + strlen(names[i]) + 2);
-		csloc_check_pointer(stack[fcnt]);
-		strcpy(stack[fcnt], subdir);
-		fcnt++;
-		free(names[i]);
-	}
-
-	free(names);
-	free(tps);
+	// adds the starting directory to the stack
+	char *maindircpy = malloc(strlen(dir) + 1);
+	strcpy(maindircpy, dir);
+	stack[fcnt] = maindircpy;
+	++fcnt;
 
 	// simulate recursion
 	char *currf;
