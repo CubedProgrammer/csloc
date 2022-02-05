@@ -205,7 +205,7 @@ int main(int argl,char*argv[])
 		puts("-h to not count files beginning with a ., such files are considered hidden on linux.");
 		puts("-cNUM specifies that NUM non-whitespace characters are required to count as a valid line.");
 		puts("-q to not output complete sentences.");
-		puts("-ext to specify file extensions to count, without the . in the front.");
+		puts("-ext or -x to specify file extensions to count, without the . in the front.");
 		puts("This option must come last, as all other args after it are considered to be in the list of file extensions.");
 		puts("Add ! in front of an extension to forbid counting all files with that extension.");
 	}
@@ -238,6 +238,7 @@ int main(int argl,char*argv[])
 			{
 				if(strcmp(argv[i], "-ext") == 0)
 				{
+					extlb:
 					ext = 1, fel = argl - i - 1;
 					fexts = malloc(sizeof(const char*) * fel);
 					csloc_check_pointer(fexts);
@@ -250,6 +251,8 @@ int main(int argl,char*argv[])
 						ihf = 1;
 					if(strchr(argv[i], 'q') != NULL)
 						quiet = 1;
+					if(strchr(argv[i], 'x') != NULL)
+						goto extlb;
 					cp = strchr(argv[i], 'c');
 					if(cp != NULL)
 						cr = atoi(cp + 1);
