@@ -6,6 +6,7 @@
 #ifdef _WIN32
 #include<windows.h>
 #else
+#include<errno.h>
 #include<sys/stat.h>
 #endif
 static inline int has_file_extension(const char *fname, const char *ext)
@@ -33,6 +34,14 @@ cnt_single_file(const char *file, size_t cr)
 {
 	FILE *f = fopen(file, "r");
 	int cnt = 0;
+
+	if(f == NULL)
+	{
+		if(errno == EACCES)
+			fprintf(stderr, "Could not go into %s, permission denied, maybe try running as superuser.\n", file);
+		goto fini;
+	}
+
 	char curr;
 	int ne = 0;
 	cr += cr == 0;
@@ -55,6 +64,7 @@ cnt_single_file(const char *file, size_t cr)
 	if(ne >= cr)
 		++cnt;
 	fclose(f);
+	fini:
 	return cnt;
 }
 #ifdef _WIN32
@@ -111,6 +121,8 @@ csloc(const char *dir, size_t cr, int sif, int ihf, int quiet, const char *const
 		// get last file
 		currf = stack[--fcnt];
 		len=strlen(currf), cnt=csloc____cnt_sub_dirs(currf);
+		if(cnt <= 2)
+			continue;
 		strcpy(subdir, currf);
 #ifdef _WIN32
 		subdir[len]='\\';

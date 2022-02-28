@@ -2,6 +2,7 @@
 #include<windows.h>
 #else
 #include<dirent.h>
+#include<errno.h>
 #endif
 #include<stdio.h>
 #include<stdlib.h>
@@ -118,6 +119,7 @@ int csloc____cnt_sub_dirs(const char *dir)
 	// make the wildcard search
 	char search[300];
 	strcpy(search, dir);
+	int cnt=0;
 #ifdef _WIN32
 	size_t len=strlen(dir);
 	strcpy(search + len, "\\*");
@@ -128,9 +130,14 @@ int csloc____cnt_sub_dirs(const char *dir)
 	HANDLE ff = FindFirstFileA(search, &wff);
 #else
 	DIR *dr = opendir(search);
+	if(dr == NULL)
+	{
+		if(errno == EACCES)
+			fprintf(stderr, "Could not go into %s, permission denied, maybe try running as superuser.\n", search);
+		goto fini;
+	}
 	struct dirent *de = readdir(dr);
 #endif
-	int cnt=0;
 
 	// keep looking while it can find more
 	do
@@ -143,6 +150,7 @@ int csloc____cnt_sub_dirs(const char *dir)
 	while(de);
 	closedir(dr);
 #endif
+	fini:
 	return cnt;
 }
 void csloc____get_sub_dirs(const char *dir,char *names[],enum cfs____file_or_directory fd[])
