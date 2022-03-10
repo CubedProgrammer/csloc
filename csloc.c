@@ -67,16 +67,115 @@ cnt_single_file(const char *file, size_t cr)
 	fini:
 	return cnt;
 }
+void csloc_sort_filen(int val, csloc_filenp arr, size_t sz)
+{
+	size_t lstk[100], rstk[100];
+	char sstk[100];
+	size_t ssz = 0;
+	lstk[ssz] = 0;
+	rstk[ssz] = sz - 1;
+	sstk[ssz] = 97;
+	++ssz;
+	size_t l, r;
+	size_t indx, indy, indz;
+	csloc_filenp auxn = malloc(sz * sizeof(*arr));
+	char status;
+	int cmp;
+	while(ssz)
+	{
+		--ssz;
+		l = lstk[ssz];
+		r = rstk[ssz];
+		status = sstk[ssz];
+		if(l == r)
+			continue;
+		if(status == 97)
+		{
+			lstk[ssz] = l;
+			rstk[ssz] = r;
+			sstk[ssz] = 98;
+			++ssz;
+			lstk[ssz] = l;
+			rstk[ssz] = (l + r) >> 1;
+			sstk[ssz] = 97;
+			lstk[ssz + 1] = rstk[ssz] + 1;
+			rstk[ssz + 1] = r;
+			sstk[ssz + 1] = 97;
+			ssz += 2;
+		}
+		else
+		{
+			indx = l;
+			indy = (l + r) / 2 + 1;
+			indz = l;
+			while(indx <= (l + r) / 2 && indy <= r)
+			{
+				if(val)
+				{
+					cmp = arr[indx].val > arr[indy].val ? -1 : arr[indx].val < arr[indy].val ? 1 : 0;
+					if(cmp == 0)
+						cmp = csloc____case_insensitive_strcmp(arr[indx].name, arr[indy].name);
+				}
+				else
+					cmp = csloc____case_insensitive_strcmp(arr[indx].name, arr[indy].name);
+				if(cmp < 0)
+				{
+					auxn[indz] = arr[indx];
+					++indx;
+				}
+				else
+				{
+					auxn[indz] = arr[indy];
+					++indy;
+				}
+				++indz;
+			}
+			if(indy <= r)
+			{
+				for(;indy <= r;indy++,indz++)
+					auxn[indz] = arr[indy];
+			}
+			else
+			{
+				for(;indz <= r;indx++,indz++)
+					auxn[indz] = arr[indx];
+			}
+			memcpy(arr + l, auxn + l, (r - l + 1) * sizeof(*arr));
+		}
+	}
+	free(auxn);
+}
+int csloc____case_insensitive_strcmp(const char *xstr, const char *ystr)
+{
+	size_t xlen = strlen(xstr), ylen = strlen(ystr);
+	size_t len = xlen < ylen ? xlen : ylen;
+	char u, v;
+	int res = 0;
+	for(size_t i = 0; i < len; ++i)
+	{
+		u = xstr[i], v = ystr[i];
+		if(u >= 'A' && u <= 'Z')
+			u+=0x20;
+		if(v >= 'A' && v <= 'Z')
+			v+=0x20;
+		if(u == v)
+			u = xstr[i], v = ystr[i];
+		if(u < v)
+			res = -1, len = 0;
+		else if(u > v)
+			res = 1, len = 0;
+	}
+	return res;
+}
 #ifdef _WIN32
 long long
 #else
 long
 #endif
-csloc(const char *dir, size_t cr, int sif, int ihf, int quiet, const char *const*fexts, size_t fel)
+csloc(const char *dir, csloc_filenp *dat, size_t *sz, unsigned ops, size_t cr, const char *const*fexts, size_t fel)
 {
 	// prepare to get the files and subdirectories
-	char *subdir = malloc(100000);
-	csloc_check_pointer(subdir);
+	char subdir[3000];
 	size_t len=strlen(dir), cnt=0;//csloc____cnt_sub_dirs(dir);
 	strcpy(subdir, dir);
 #ifdef _WIN32
@@ -107,6 +206,16 @@ csloc(const char *dir, size_t cr, int sif, int ihf, int quiet, const char *const
 #endif
 	int sfl;
 	int valid;
+
+	// store data if requested
+	size_t datsz, datc;
+	csloc_filenp d = NULL;
+	if(CSLOC_ISSIF(ops))
+	{
+		datsz = 0;
+		datc = 96;
+		d = malloc(datc * sizeof(*d));
+	}
 
 	// adds the starting directory to the stack
 	char *maindircpy = malloc(strlen(dir) + 1);
@@ -143,7 +252,7 @@ csloc(const char *dir, size_t cr, int sif, int ihf, int quiet, const char *const
 			strcpy(subdir + len + 1, names[i]);
 
 			// get rid of hidden files if enabled
-			if(ihf && names[i][0] == '.')
+			if(CSLOC_ISIGNDOT(ops) && names[i][0] == '.')
 				continue;
 
 			if(NFILE==tps[i])
@@ -167,12 +276,17 @@ csloc(const char *dir, size_t cr, int sif, int ihf, int quiet, const char *const
 				if(valid)
 				{
 					sfl = cnt_single_file(subdir, cr);
-					if(sif)
+					if(CSLOC_ISSIF(ops))
 					{
-						if(quiet)
-							printf("%s %d\n", subdir, sfl);
-						else
-							printf("File %s has %d source lines of code.\n", subdir, sfl);
+						if(datsz == datc)
+						{
+							datc += datc >> 1;
+							d = realloc(d, datc);
+						}
+						d[datsz].val = sfl;
+						d[datsz].name = malloc(strlen(subdir) + 1);
+						strcpy(d[datsz].name, subdir);
+						++datsz;
 					}
 					sloc += sfl;
 				}
@@ -205,7 +319,8 @@ csloc(const char *dir, size_t cr, int sif, int ihf, int quiet, const char *const
 		free(currf);
 	}
 	free(stack);
-	free(subdir);
+	*dat = d;
+	*sz = datsz;
 	return sloc;
 }
 int main(int argl,char*argv[])
@@ -213,6 +328,7 @@ int main(int argl,char*argv[])
 	if(argl==1)
 	{
 		puts("Specify a directory.\nCommand line options...\n");
+		puts("-t to sort the files by number of lines.");
 		puts("-s to show the sloc of individual files.");
 		puts("-h to not count files beginning with a ., such files are considered hidden on linux.");
 		puts("-cNUM specifies that NUM non-whitespace characters are required to count as a valid line.");
@@ -225,15 +341,11 @@ int main(int argl,char*argv[])
 	{
 		setvbuf(stderr, NULL, _IONBF, 0);
 		setvbuf(stdout, NULL, _IONBF, 0);
-		// show individual files
-		int sif = 0;
+		unsigned options = 0;
 		// specified file extension
 		const char **fexts = NULL;
 		// number of file extensions to check
 		size_t fel = 0;
-		// ignore hidden files
-		int ihf = 0;
-		int quiet = 0;
 		char *dir = NULL;
 		int ext = 0;
 		size_t cr = 1;
@@ -257,12 +369,14 @@ int main(int argl,char*argv[])
 				}
 				else
 				{
+					if(strchr(argv[i], 't') != NULL)
+						options |= CSLOC_SORT;
 					if(strchr(argv[i], 's') != NULL)
-						sif = 1;
+						options |= CSLOC_SIF;
 					if(strchr(argv[i], 'h') != NULL)
-						ihf = 1;
+						options |= CSLOC_IGNDOT;
 					if(strchr(argv[i], 'q') != NULL)
-						quiet = 1;
+						options |= CSLOC_QUIET;
 					if(strchr(argv[i], 'x') != NULL)
 						goto extlb;
 					cp = strchr(argv[i], 'c');
@@ -291,14 +405,37 @@ int main(int argl,char*argv[])
 			if(dl > 1 && dir[dl - 1] == '/')
 #endif
 				dir[dl - 1] = '\0';
-			if(quiet)
-				printf("%ld\n", isdir ? csloc(dir, cr, sif, ihf, quiet, fexts, fel) : cnt_single_file(dir, cr));
+			size_t total;
+			if(isdir)
+			{
+				csloc_filenp dat;
+				size_t datsz;
+				total = csloc(dir, &dat, &datsz, options, cr, fexts, fel);
+				if(CSLOC_ISSIF(options))
+				{
+					csloc_sort_filen(CSLOC_ISSORT(options), dat, datsz);
+					for(size_t i = 0; i < datsz; ++i)
+					{
+						if(CSLOC_ISQUIET(options))
+							printf("%s %zu\n", dat[i].name, dat[i].val);
+						else
+							printf("File %s has %zu source lines of code.\n", dat[i].name, dat[i].val);
+						free(dat[i].name);
+					}
+					free(dat);
+				}
+				if(CSLOC_ISQUIET(options))
+					printf("%zu\n", total);
+				else
+					printf("All files in %s combined have %zu source lines of code.\n",dir,total);
+			}
 			else
 			{
-				if(isdir)
-					printf("All files in %s combined have %ld source lines of code.\n",dir,csloc(dir, cr, sif, ihf, quiet, fexts, fel));
+				total = cnt_single_file(dir, cr);
+				if(CSLOC_ISQUIET(options))
+					printf("%zu\n", total);
 				else
-					printf("The file %s has %ld source lines of code.\n",dir,cnt_single_file(dir, cr));
+					printf("The file %s has %zu source lines of code.\n",dir,total);
 			}
 		}
 		if(fexts)
