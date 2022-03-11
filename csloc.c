@@ -185,13 +185,6 @@ csloc(const char *dir, csloc_filenp *dat, size_t *sz, unsigned ops, size_t cr, c
 #endif
 	char **names;
 	enum cfs____file_or_directory *tps;
-	/*char **names=malloc(sizeof(char*)*cnt);
-	csloc_check_pointer(names);
-	enum cfs____file_or_directory *tps = malloc(cnt * sizeof(enum cfs____file_or_directory));
-	csloc_check_pointer(tps);
-
-	// get the files and subdirectories
-	csloc____get_sub_dirs(dir, names, tps);*/
 
 	// set up stack for simulating recursion
 	size_t fcnt=0, rm=5, olr=3;
@@ -222,7 +215,11 @@ csloc(const char *dir, csloc_filenp *dat, size_t *sz, unsigned ops, size_t cr, c
 	strcpy(maindircpy, dir);
 	stack[fcnt] = maindircpy;
 	++fcnt;
-
+#ifdef _WIN32
+	WIN32_FIND_DATA fdat;
+#else
+	struct stat fdat;
+#endif
 	// simulate recursion
 	char *currf;
 	while(fcnt)
@@ -275,7 +272,22 @@ csloc(const char *dir, csloc_filenp *dat, size_t *sz, unsigned ops, size_t cr, c
 				}
 				if(valid)
 				{
-					sfl = cnt_single_file(subdir, cr);
+					if(CSLOC_ISFSIZE(ops))
+					{
+#ifdef _WIN32
+						FindFirstFileA(subdir, &fdat);
+						ULONGLONG sz = fdat.nFileSizeHigh;
+						sz = (sz << 32) + dat.nFileSizeLow;
+						sfl = sz;
+#else
+						if(stat(subdir, &fdat) == 0)
+							sfl = fdat.st_size;
+						else
+							sfl = 0;
+#endif
+					}
+					else
+						sfl = cnt_single_file(subdir, cr);
 					if(CSLOC_ISSIF(ops))
 					{
 						if(datsz == datc)
@@ -328,6 +340,7 @@ int main(int argl,char*argv[])
 	if(argl==1)
 	{
 		puts("Specify a directory.\nCommand line options...\n");
+		puts("-f to count file size instead.");
 		puts("-t to sort the files by number of lines.");
 		puts("-s to show the sloc of individual files.");
 		puts("-h to not count files beginning with a ., such files are considered hidden on linux.");
@@ -369,6 +382,8 @@ int main(int argl,char*argv[])
 				}
 				else
 				{
+					if(strchr(argv[i], 'f') != NULL)
+						options |= CSLOC_FSIZE;
 					if(strchr(argv[i], 't') != NULL)
 						options |= CSLOC_SORT;
 					if(strchr(argv[i], 's') != NULL)

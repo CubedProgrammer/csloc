@@ -1,10 +1,13 @@
 # Count Source Lines Of Code
-## Counts lines of code of a directory in Linux
+## Counts lines of code of certain file types in a directory in Linux
 Simply compiling the C files directly will do. The older versions may work on windows.
+
+This is a command line tool, it has no GUI of any sort.
+
+Run with no args to get a help screen.
 
 This repository can now be configured to be built into a shared library, include csloc.h in your code to use it.
 ```sh
-gcc -O3 -c csloc.c -fPIC
-gcc -O3 -c get_sub_dir.c -fPIC
+gcc -O3 -c csloc.c get_sub_dir.c -fPIC
 gcc -shared -o libcsloc csloc.o get_sub_dir.o
 ```

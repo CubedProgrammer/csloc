@@ -4,10 +4,12 @@
 #define CSLOC_ISIGNDOT(n)((n) & 2)
 #define CSLOC_ISSIF(n)((n) & 4)
 #define CSLOC_ISSORT(n)((n) & 010)
+#define CSLOC_ISFSIZE(n)((n) & 020)
 #define CSLOC_QUIET 1
 #define CSLOC_IGNDOT 2
 #define CSLOC_SIF 4
 #define CSLOC_SORT 010
+#define CSLOC_FSIZE 020
 struct csloc_file_entry
 {
 	size_t val;
