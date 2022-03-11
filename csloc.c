@@ -281,7 +281,7 @@ csloc(const char *dir, csloc_filenp *dat, size_t *sz, unsigned ops, size_t cr, c
 						if(datsz == datc)
 						{
 							datc += datc >> 1;
-							d = realloc(d, datc);
+							d = realloc(d, sizeof(*d) * datc);
 						}
 						d[datsz].val = sfl;
 						d[datsz].name = malloc(strlen(subdir) + 1);
