@@ -5,11 +5,13 @@
 #define CSLOC_ISSIF(n)((n) & 4)
 #define CSLOC_ISSORT(n)((n) & 010)
 #define CSLOC_ISFSIZE(n)((n) & 020)
+#define CSLOC_ISRSORT(n)((n) & 050)
 #define CSLOC_QUIET 1
 #define CSLOC_IGNDOT 2
 #define CSLOC_SIF 4
 #define CSLOC_SORT 010
 #define CSLOC_FSIZE 020
+#define CSLOC_RSORT 050
 struct csloc_file_entry
 {
 	size_t val;
@@ -19,6 +21,12 @@ typedef struct csloc_file_entry csloc_filen;
 typedef struct csloc_file_entry *csloc_filenp;
 int csloc____case_insensitive_strcmp(const char *xstr, const char *ystr);
 void csloc_sort_filen(int val, csloc_filenp arr, size_t sz);
+#ifdef _WIN32
+long long
+#else
+long
+#endif
+cnt_single_file(const char *file, size_t cr);
 #ifdef _WIN32
 long long
 #else
