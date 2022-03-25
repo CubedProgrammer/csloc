@@ -331,18 +331,21 @@ csloc(const char *dir, csloc_filenp *dat, size_t *sz, unsigned ops, size_t cr, c
 		free(currf);
 	}
 	free(stack);
-	csloc_sort_filen(CSLOC_ISSORT(ops), d, datsz);
-	if(CSLOC_ISRSORT(ops))
+	if(CSLOC_ISSIF(ops))
 	{
-		csloc_filen tmp;
-		for(size_t i = 0; i < datsz >> 1; ++i)
+		csloc_sort_filen(CSLOC_ISSORT(ops), d, datsz);
+		if(CSLOC_ISRSORT(ops))
 		{
-			tmp = d[i];
-			d[i] = d[datsz - i - 1];
-			d[datsz - i - 1] = tmp;
+			csloc_filen tmp;
+			for(size_t i = 0; i < datsz >> 1; ++i)
+			{
+				tmp = d[i];
+				d[i] = d[datsz - i - 1];
+				d[datsz - i - 1] = tmp;
+			}
 		}
+		*dat = d;
+		*sz = datsz;
 	}
-	*dat = d;
-	*sz = datsz;
 	return sloc;
 }
