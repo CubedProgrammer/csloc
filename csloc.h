@@ -5,7 +5,7 @@
 #define CSLOC_ISSIF(n)((n) & 4)
 #define CSLOC_ISSORT(n)((n) & 010)
 #define CSLOC_ISFSIZE(n)((n) & 020)
-#define CSLOC_ISRSORT(n)((n) & 050)
+#define CSLOC_ISRSORT(n)((n) & 040)
 #define CSLOC_QUIET 1
 #define CSLOC_IGNDOT 2
 #define CSLOC_SIF 4

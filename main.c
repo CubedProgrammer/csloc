@@ -12,6 +12,8 @@ int main(int argl,char*argv[])
 	if(argl==1)
 	{
 		puts("Specify a directory.\nCommand line options...\n");
+		puts("-e to alternate colours in -s mode, making output easier to read.");
+		puts("-n to list the number before the path in -qs mode.");
 		puts("-r to sort least to greatest.");
 		puts("-f to count file size instead.");
 		puts("-t to sort the files by number of lines.");
@@ -36,6 +38,8 @@ int main(int argl,char*argv[])
 		int ext = 0;
 		size_t cr = 1;
 		char *cp;
+		char numfirst = 0, colours = 0;
+		int col = 0;
 		for(int i = 1; i < argl; ++i)
 		{
 			if(ext)
@@ -54,6 +58,10 @@ int main(int argl,char*argv[])
 				}
 				else
 				{
+					if(strchr(argv[i], 'e') != NULL)
+						colours = 1;
+					if(strchr(argv[i], 'n') != NULL)
+						numfirst = 1;
 					if(strchr(argv[i], 'r') != NULL)
 						options |= CSLOC_RSORT;
 					if(strchr(argv[i], 'f') != NULL)
@@ -104,13 +112,23 @@ int main(int argl,char*argv[])
 				{
 					for(size_t i = 0; i < datsz; ++i)
 					{
+						if(colours)
+							printf("\033\133%im", col);
 						if(CSLOC_ISQUIET(options))
-							printf("%s %zu\n", dat[i].name, dat[i].val);
+						{
+							if(numfirst)
+								printf("%zu %s\n", dat[i].val, dat[i].name);
+							else
+								printf("%s %zu\n", dat[i].name, dat[i].val);
+						}
 						else
 							printf("File %s has %zu source lines of code.\n", dat[i].name, dat[i].val);
 						free(dat[i].name);
+						col = col == 0 ? 36 : 0;
 					}
 					free(dat);
+					if(colours)
+						fputs("\033\133m", stdout);
 				}
 				if(CSLOC_ISQUIET(options))
 					printf("%zu\n", total);
