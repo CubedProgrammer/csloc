@@ -12,6 +12,7 @@ int main(int argl,char*argv[])
 	if(argl==1)
 	{
 		puts("Specify a directory.\nCommand line options...\n");
+		puts("-o to write output to a file instead of stdout");
 		puts("-e to alternate colours in -s mode, making output easier to read.");
 		puts("-n to list the number before the path in -qs mode.");
 		puts("-r to sort least to greatest.");
@@ -29,9 +30,10 @@ int main(int argl,char*argv[])
 	{
 		setvbuf(stderr, NULL, _IONBF, 0);
 		setvbuf(stdout, NULL, _IONBF, 0);
+		FILE *ofh = stdout;
 		unsigned options = 0;
 		// specified file extension
-		const char **fexts = NULL;
+		const char **fexts = NULL, *ofn = NULL;
 		// number of file extensions to check
 		size_t fel = 0;
 		char *dir = NULL;
@@ -39,6 +41,7 @@ int main(int argl,char*argv[])
 		size_t cr = 1;
 		char *cp;
 		char numfirst = 0, colours = 0;
+		char ofile = 0;
 		int col = 0;
 		for(int i = 1; i < argl; ++i)
 		{
@@ -58,6 +61,8 @@ int main(int argl,char*argv[])
 				}
 				else
 				{
+					if(strchr(argv[i], 'o') != NULL)
+						ofile = 1;
 					if(strchr(argv[i], 'e') != NULL)
 						colours = 1;
 					if(strchr(argv[i], 'n') != NULL)
@@ -81,8 +86,22 @@ int main(int argl,char*argv[])
 						cr = atoi(cp + 1);
 				}
 			}
+			else if(ofile)
+			{
+				ofile = 0;
+				ofn = argv[i];
+			}
 			else
 				dir = argv[i];
+		}
+		if(ofn != NULL)
+		{
+			ofh = fopen(ofn, "w");
+			if(ofh == NULL)
+			{
+				ofh = stdout;
+				fprintf(stderr, "File %s could not be opened for writing, check permissions.\n", ofn);
+			}
 		}
 		if(dir == NULL)
 			puts("Specify a directory, run with no arguments for help message.");
@@ -113,39 +132,41 @@ int main(int argl,char*argv[])
 					for(size_t i = 0; i < datsz; ++i)
 					{
 						if(colours)
-							printf("\033\133%im", col);
+							fprintf(ofh, "\033\133%im", col);
 						if(CSLOC_ISQUIET(options))
 						{
 							if(numfirst)
-								printf("%zu %s\n", dat[i].val, dat[i].name);
+								fprintf(ofh, "%zu %s\n", dat[i].val, dat[i].name);
 							else
-								printf("%s %zu\n", dat[i].name, dat[i].val);
+								fprintf(ofh, "%s %zu\n", dat[i].name, dat[i].val);
 						}
 						else
-							printf("File %s has %zu source lines of code.\n", dat[i].name, dat[i].val);
+							fprintf(ofh, "File %s has %zu source lines of code.\n", dat[i].name, dat[i].val);
 						free(dat[i].name);
 						col = col == 0 ? 36 : 0;
 					}
 					free(dat);
 					if(colours)
-						fputs("\033\133m", stdout);
+						fputs("\033\133m", ofh);
 				}
 				if(CSLOC_ISQUIET(options))
-					printf("%zu\n", total);
+					fprintf(ofh, "%zu\n", total);
 				else
-					printf("All files in %s combined have %zu source lines of code.\n",dir,total);
+					fprintf(ofh, "All files in %s combined have %zu source lines of code.\n",dir,total);
 			}
 			else
 			{
 				total = cnt_single_file(dir, cr);
 				if(CSLOC_ISQUIET(options))
-					printf("%zu\n", total);
+					fprintf(ofh, "%zu\n", total);
 				else
-					printf("The file %s has %zu source lines of code.\n",dir,total);
+					fprintf(ofh, "The file %s has %zu source lines of code.\n",dir,total);
 			}
 		}
 		if(fexts)
 			free(fexts);
+		if(ofh != stdout)
+			fclose(ofh);
 	}
 	return 0;
 }
