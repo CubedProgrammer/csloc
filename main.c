@@ -11,6 +11,7 @@ int main(int argl,char*argv[])
 {
 	if(argl==1)
 	{
+		help:
 		puts("Specify a directory.\nCommand line options...\n");
 		puts("-o to write output to a file instead of stdout");
 		puts("-e to alternate colours in -s mode, making output easier to read.");
@@ -28,6 +29,8 @@ int main(int argl,char*argv[])
 	}
 	else
 	{
+		if(strcmp(argv[1], "--help") == 0)
+			goto help;
 		setvbuf(stderr, NULL, _IONBF, 0);
 		setvbuf(stdout, NULL, _IONBF, 0);
 		FILE *ofh = stdout;
