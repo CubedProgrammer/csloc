@@ -144,7 +144,12 @@ int main(int argl,char*argv[])
 								fprintf(ofh, "%s %zu\n", dat[i].name, dat[i].val);
 						}
 						else
-							fprintf(ofh, "File %s has %zu source lines of code.\n", dat[i].name, dat[i].val);
+						{
+							if(CSLOC_ISFSIZE(options))
+								fprintf(ofh, "File %s is %zu bytes.\n", dat[i].name, dat[i].val);
+							else
+								fprintf(ofh, "File %s has %zu source lines of code.\n", dat[i].name, dat[i].val);
+						}
 						free(dat[i].name);
 						col = col == 0 ? 36 : 0;
 					}

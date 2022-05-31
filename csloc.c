@@ -277,7 +277,7 @@ csloc(const char *dir, csloc_filenp *dat, size_t *sz, unsigned ops, size_t cr, c
 #ifdef _WIN32
 						FindFirstFileA(subdir, &fdat);
 						ULONGLONG sz = fdat.nFileSizeHigh;
-						sz = (sz << 32) + dat.nFileSizeLow;
+						sz = (sz << 32) + fdat.nFileSizeLow;
 						sfl = sz;
 #else
 						if(stat(subdir, &fdat) == 0)
