@@ -16,12 +16,14 @@
 #include<sys/stat.h>
 #endif
 #include"csloc.h"
+#define VERSION_MAJOR "7"
+#define VERSION_MINOR "1"
 int main(int argl,char*argv[])
 {
 	if(argl==1)
 	{
 		help:
-		puts("csloc version 1.7\nSpecify a directory.\nCommand line options...\n");
+		printf("csloc version 1.%s.%s\nSpecify a directory.\nCommand line options...\n\n",VERSION_MAJOR,VERSION_MINOR);
 		puts("-o to write output to a file instead of stdout");
 		puts("-e to alternate colours in -s mode, making output easier to read.");
 		puts("-n to list the number before the path in -qs mode.");
@@ -51,7 +53,8 @@ int main(int argl,char*argv[])
 		char *dir = NULL;
 		int ext = 0;
 		size_t cr = 1;
-		char *cp;
+		const char *cp;
+		char currop, *numend;
 		char numfirst = 0, colours = 0;
 		char ofile = 0;
 		int col = 0;
@@ -73,29 +76,50 @@ int main(int argl,char*argv[])
 				}
 				else
 				{
-					if(strchr(argv[i], 'o') != NULL)
-						ofile = 1;
-					if(strchr(argv[i], 'e') != NULL)
-						colours = 1;
-					if(strchr(argv[i], 'n') != NULL)
-						numfirst = 1;
-					if(strchr(argv[i], 'r') != NULL)
-						options |= CSLOC_RSORT;
-					if(strchr(argv[i], 'f') != NULL)
-						options |= CSLOC_FSIZE;
-					if(strchr(argv[i], 't') != NULL)
-						options |= CSLOC_SORT;
-					if(strchr(argv[i], 's') != NULL)
-						options |= CSLOC_SIF;
-					if(strchr(argv[i], 'h') != NULL)
-						options |= CSLOC_IGNDOT;
-					if(strchr(argv[i], 'q') != NULL)
-						options |= CSLOC_QUIET;
-					if(strchr(argv[i], 'x') != NULL)
-						goto extlb;
-					cp = strchr(argv[i], 'c');
-					if(cp != NULL)
-						cr = atoi(cp + 1);
+					for(const char *it = argv[i] + 1; *it != '\0'; ++it)
+					{
+						currop = *it;
+						switch(currop)
+						{
+							case'o':
+								ofile = 1;
+								break;
+							case'e':
+								colours = 1;
+								break;
+							case'n':
+								numfirst = 1;
+								break;
+							case'r':
+								options |= CSLOC_RSORT;
+								break;
+							case'f':
+								options |= CSLOC_FSIZE;
+								break;
+							case't':
+								options |= CSLOC_SORT;
+								break;
+							case's':
+								options |= CSLOC_SIF;
+								break;
+							case'h':
+								options |= CSLOC_IGNDOT;
+								break;
+							case'q':
+								options |= CSLOC_QUIET;
+								break;
+							case'x':
+								goto extlb;
+								break;
+							case'c':
+								cp = it + 1;
+								cr = strtoul(cp + 1, &numend, 10);
+								it = numend - 1;
+								break;
+							default:
+								fprintf(stderr, "Unrecognized option -%c, it will be ignored.\n", currop);
+						}
+					}
 				}
 			}
 			else if(ofile)
