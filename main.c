@@ -16,14 +16,15 @@
 #include<sys/stat.h>
 #endif
 #include"csloc.h"
-#define VERSION_MAJOR "7"
-#define VERSION_MINOR "1"
+#define VERSION_MAJOR "8"
+#define VERSION_MINOR "0"
 int main(int argl,char*argv[])
 {
 	if(argl==1)
 	{
 		help:
-		printf("csloc version 1.%s.%s\nSpecify a directory.\nCommand line options...\n\n",VERSION_MAJOR,VERSION_MINOR);
+		printf("csloc version 1.%s.%s\n",VERSION_MAJOR,VERSION_MINOR);
+		printf("Usage: %s [OPTIONS...] FILES... [-x] [EXTENSIONS...]\nCommand line options...\n\n", argv[0]);
 		puts("-o to write output to a file instead of stdout");
 		puts("-e to alternate colours in -s mode, making output easier to read.");
 		puts("-n to list the number before the path in -qs mode.");
@@ -34,7 +35,7 @@ int main(int argl,char*argv[])
 		puts("-h to not count files beginning with a ., such files are considered hidden on linux.");
 		puts("-cNUM specifies that NUM non-whitespace characters are required to count as a valid line.");
 		puts("-q to not output complete sentences.");
-		puts("-ext or -x to specify file extensions to count, without the . in the front.");
+		puts("-x to specify file extensions to count, without the . in the front.");
 		puts("This option must come last, as all other args after it are considered to be in the list of file extensions.");
 		puts("Add ! in front of an extension to forbid counting all files with that extension.");
 	}
@@ -57,24 +58,25 @@ int main(int argl,char*argv[])
 		char currop, *numend;
 		char numfirst = 0, colours = 0;
 		char ofile = 0;
-		int col = 0;
+		int col = 0, dircnt = 0, extbegin = argl;
 		for(int i = 1; i < argl; ++i)
 		{
 			if(ext)
-			{
 				fexts[i - argl + fel] = argv[i];
-				continue;
-			}
-
-			if(argv[i][0] == '-')
+			else if(argv[i][0] == '-')
 			{
-				if(strcmp(argv[i], "-ext") == 0)
+				if(strchr(argv[i], 'x') != NULL)
 				{
-					extlb:
 					ext = 1, fel = argl - i - 1;
+					extbegin = i + 1;
 					fexts = malloc(sizeof(const char*) * fel);
 				}
-				else
+			}
+		}
+		for(int i = 1; i < extbegin; ++i)
+		{
+			if(argv[i][0] == '-')
+			{
 				{
 					for(const char *it = argv[i] + 1; *it != '\0'; ++it)
 					{
@@ -108,13 +110,12 @@ int main(int argl,char*argv[])
 							case'q':
 								options |= CSLOC_QUIET;
 								break;
-							case'x':
-								goto extlb;
-								break;
 							case'c':
 								cp = it + 1;
 								cr = strtoul(cp + 1, &numend, 10);
 								it = numend - 1;
+								break;
+							case'x':
 								break;
 							default:
 								fprintf(stderr, "Unrecognized option -%c, it will be ignored.\n", currop);
@@ -126,88 +127,85 @@ int main(int argl,char*argv[])
 			{
 				ofile = 0;
 				ofn = argv[i];
-			}
-			else
-				dir = argv[i];
-		}
-		if(ofn != NULL)
-		{
-			ofh = fopen(ofn, "w");
-			if(ofh == NULL)
-			{
-				ofh = stdout;
-				fprintf(stderr, "File %s could not be opened for writing, check permissions.\n", ofn);
-			}
-		}
-		if(dir == NULL)
-			puts("Specify a directory, run with no arguments for help message.");
-		else
-		{
-#ifdef _WIN32
-			int isdir = GetFileAttributesA(dir) & FILE_ATTRIBUTE_DIRECTORY;
-#else
-			struct stat fstat;
-			stat(dir, &fstat);
-			int isdir = S_ISDIR(fstat.st_mode);
-#endif
-			int dl = strlen(dir);
-#ifdef _WIN32
-			if(dir[dl - 1] == '\\')
-#else
-			if(dl > 1 && dir[dl - 1] == '/')
-#endif
-				dir[dl - 1] = '\0';
-			size_t total;
-			if(isdir)
-			{
-				csloc_filenp dat;
-				size_t datsz;
-				total = csloc(dir, &dat, &datsz, options, cr, fexts, fel);
-				if(CSLOC_ISSIF(options))
+				ofh = fopen(ofn, "w");
+				if(ofh == NULL)
 				{
-					for(size_t i = 0; i < datsz; ++i)
-					{
-						if(colours)
-							fprintf(ofh, "\033\133%im", col);
-						if(CSLOC_ISQUIET(options))
-						{
-							if(numfirst)
-								fprintf(ofh, "%zu %s\n", dat[i].val, dat[i].name);
-							else
-								fprintf(ofh, "%s %zu\n", dat[i].name, dat[i].val);
-						}
-						else
-						{
-							if(CSLOC_ISFSIZE(options))
-								fprintf(ofh, "File %s is %zu bytes.\n", dat[i].name, dat[i].val);
-							else
-								fprintf(ofh, "File %s has %zu source lines of code.\n", dat[i].name, dat[i].val);
-						}
-						free(dat[i].name);
-						col = col == 0 ? 36 : 0;
-					}
-					free(dat);
-					if(colours)
-						fputs("\033\133m", ofh);
+					ofh = stdout;
+					fprintf(stderr, "File %s could not be opened for writing, check permissions.\n", ofn);
 				}
-				if(CSLOC_ISQUIET(options))
-					fprintf(ofh, "%zu\n", total);
-				else if(CSLOC_ISFSIZE(options))
-					fprintf(ofh, "All files in %s combined have a grand total of %zu bytes.\n",dir,total);
-				else
-					fprintf(ofh, "All files in %s combined have %zu source lines of code.\n",dir,total);
 			}
 			else
 			{
-				total = cnt_single_file(dir, cr);
-				if(CSLOC_ISQUIET(options))
-					fprintf(ofh, "%zu\n", total);
-				else if(CSLOC_ISFSIZE(options))
-					fprintf(ofh, "The file %s has %zu bytes.\n",dir,total);
+				dir = argv[i];
+				++dircnt;
+#ifdef _WIN32
+				int isdir = GetFileAttributesA(dir) & FILE_ATTRIBUTE_DIRECTORY;
+#else
+				struct stat fstat;
+				stat(dir, &fstat);
+				int isdir = S_ISDIR(fstat.st_mode);
+#endif
+				int dl = strlen(dir);
+#ifdef _WIN32
+				if(dir[dl - 1] == '\\')
+#else
+				if(dl > 1 && dir[dl - 1] == '/')
+#endif
+					dir[dl - 1] = '\0';
+				size_t total;
+				if(isdir)
+				{
+					csloc_filenp dat;
+					size_t datsz;
+					total = csloc(dir, &dat, &datsz, options, cr, fexts, fel);
+					if(CSLOC_ISSIF(options))
+					{
+						for(size_t i = 0; i < datsz; ++i)
+						{
+							if(colours)
+								fprintf(ofh, "\033\133%im", col);
+							if(CSLOC_ISQUIET(options))
+							{
+								if(numfirst)
+									fprintf(ofh, "%zu %s\n", dat[i].val, dat[i].name);
+								else
+									fprintf(ofh, "%s %zu\n", dat[i].name, dat[i].val);
+							}
+							else
+							{
+								if(CSLOC_ISFSIZE(options))
+									fprintf(ofh, "File %s is %zu bytes.\n", dat[i].name, dat[i].val);
+								else
+									fprintf(ofh, "File %s has %zu source lines of code.\n", dat[i].name, dat[i].val);
+							}
+							free(dat[i].name);
+							col = col == 0 ? 36 : 0;
+						}
+						free(dat);
+						if(colours)
+							fputs("\033\133m", ofh);
+					}
+					if(CSLOC_ISQUIET(options))
+						fprintf(ofh, "%zu\n", total);
+					else if(CSLOC_ISFSIZE(options))
+						fprintf(ofh, "All files in %s combined have a grand total of %zu bytes.\n",dir,total);
+					else
+						fprintf(ofh, "All files in %s combined have %zu source lines of code.\n",dir,total);
+				}
 				else
-					fprintf(ofh, "The file %s has %zu source lines of code.\n",dir,total);
+				{
+					total = cnt_single_file(dir, cr);
+					if(CSLOC_ISQUIET(options))
+						fprintf(ofh, "%zu\n", total);
+					else if(CSLOC_ISFSIZE(options))
+						fprintf(ofh, "The file %s has %zu bytes.\n",dir,total);
+					else
+						fprintf(ofh, "The file %s has %zu source lines of code.\n",dir,total);
+				}
 			}
 		}
+		if(dircnt == 0)
+			puts("Specify a directory, run with no arguments for help message.");
 		if(fexts)
 			free(fexts);
 		if(ofh != stdout)
