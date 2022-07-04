@@ -16,16 +16,17 @@
 #include<sys/stat.h>
 #endif
 #include"csloc.h"
-#define VERSION_MAJOR "8"
-#define VERSION_MINOR "0"
+#define VERSION_MINOR "8"
+#define VERSION_PATCH "1"
 int main(int argl,char*argv[])
 {
 	if(argl==1)
 	{
 		help:
-		printf("csloc version 1.%s.%s\n",VERSION_MAJOR,VERSION_MINOR);
+		printf("csloc version 1.%s.%s\n",VERSION_MINOR,VERSION_PATCH);
 		printf("Usage: %s [OPTIONS...] FILES... [-x] [EXTENSIONS...]\nCommand line options...\n\n", argv[0]);
-		puts("-o to write output to a file instead of stdout");
+		puts("If a file starts with '-', escape it with a \\, otherwise the first \\ of an argument is ignored.");
+		puts("-o to write output to a file instead of stdout, the next argument MUST be that file.");
 		puts("-e to alternate colours in -s mode, making output easier to read.");
 		puts("-n to list the number before the path in -qs mode.");
 		puts("-r to sort least to greatest.");
@@ -68,62 +69,14 @@ int main(int argl,char*argv[])
 				if(strchr(argv[i], 'x') != NULL)
 				{
 					ext = 1, fel = argl - i - 1;
-					extbegin = i + 1;
+					extbegin = i;
 					fexts = malloc(sizeof(const char*) * fel);
 				}
 			}
 		}
 		for(int i = 1; i < extbegin; ++i)
 		{
-			if(argv[i][0] == '-')
-			{
-				{
-					for(const char *it = argv[i] + 1; *it != '\0'; ++it)
-					{
-						currop = *it;
-						switch(currop)
-						{
-							case'o':
-								ofile = 1;
-								break;
-							case'e':
-								colours = 1;
-								break;
-							case'n':
-								numfirst = 1;
-								break;
-							case'r':
-								options |= CSLOC_RSORT;
-								break;
-							case'f':
-								options |= CSLOC_FSIZE;
-								break;
-							case't':
-								options |= CSLOC_SORT;
-								break;
-							case's':
-								options |= CSLOC_SIF;
-								break;
-							case'h':
-								options |= CSLOC_IGNDOT;
-								break;
-							case'q':
-								options |= CSLOC_QUIET;
-								break;
-							case'c':
-								cp = it + 1;
-								cr = strtoul(cp + 1, &numend, 10);
-								it = numend - 1;
-								break;
-							case'x':
-								break;
-							default:
-								fprintf(stderr, "Unrecognized option -%c, it will be ignored.\n", currop);
-						}
-					}
-				}
-			}
-			else if(ofile)
+			if(ofile)
 			{
 				ofile = 0;
 				ofn = argv[i];
@@ -134,9 +87,55 @@ int main(int argl,char*argv[])
 					fprintf(stderr, "File %s could not be opened for writing, check permissions.\n", ofn);
 				}
 			}
+			else if(argv[i][0] == '-')
+			{
+				for(const char *it = argv[i] + 1; *it != '\0'; ++it)
+				{
+					currop = *it;
+					switch(currop)
+					{
+						case'o':
+							ofile = 1;
+							break;
+						case'e':
+							colours = 1;
+							break;
+						case'n':
+							numfirst = 1;
+							break;
+						case'r':
+							options |= CSLOC_RSORT;
+							break;
+						case'f':
+							options |= CSLOC_FSIZE;
+							break;
+						case't':
+							options |= CSLOC_SORT;
+							break;
+						case's':
+							options |= CSLOC_SIF;
+							break;
+						case'h':
+							options |= CSLOC_IGNDOT;
+							break;
+						case'q':
+							options |= CSLOC_QUIET;
+							break;
+						case'c':
+							cp = it + 1;
+							cr = strtoul(cp + 1, &numend, 10);
+							it = numend - 1;
+							break;
+						default:
+							fprintf(stderr, "Unrecognized option -%c, it will be ignored.\n", currop);
+					}
+				}
+			}
 			else
 			{
 				dir = argv[i];
+				if(*dir == '\\')
+					++dir;
 				++dircnt;
 #ifdef _WIN32
 				int isdir = GetFileAttributesA(dir) & FILE_ATTRIBUTE_DIRECTORY;
