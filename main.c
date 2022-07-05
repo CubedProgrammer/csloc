@@ -17,7 +17,7 @@
 #endif
 #include"csloc.h"
 #define VERSION_MINOR "8"
-#define VERSION_PATCH "1"
+#define VERSION_PATCH "2"
 int main(int argl,char*argv[])
 {
 	if(argl==1)
@@ -33,6 +33,7 @@ int main(int argl,char*argv[])
 		puts("-f to count file size instead.");
 		puts("-t to sort the files by number of lines.");
 		puts("-s to show the sloc of individual files.");
+		puts("The options -r and -t automatically enable -s, -rs and -st are now redundant.");
 		puts("-h to not count files beginning with a ., such files are considered hidden on linux.");
 		puts("-cNUM specifies that NUM non-whitespace characters are required to count as a valid line.");
 		puts("-q to not output complete sentences.");

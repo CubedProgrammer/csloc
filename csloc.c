@@ -42,7 +42,7 @@ long
 cnt_single_file(const char *file, size_t cr)
 {
 	FILE *f = fopen(file, "r");
-	int cnt = 0;
+	long cnt = 0;
 
 	if(f == NULL)
 	{
@@ -51,7 +51,7 @@ cnt_single_file(const char *file, size_t cr)
 		goto fini;
 	}
 
-	char curr;
+	int curr;
 	int ne = 0;
 	cr += cr == 0;
 

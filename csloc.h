@@ -18,9 +18,9 @@
 #define CSLOC_QUIET 1
 #define CSLOC_IGNDOT 2
 #define CSLOC_SIF 4
-#define CSLOC_SORT 010
+#define CSLOC_SORT 014
 #define CSLOC_FSIZE 020
-#define CSLOC_RSORT 050
+#define CSLOC_RSORT 054
 struct csloc_file_entry
 {
 	size_t val;
