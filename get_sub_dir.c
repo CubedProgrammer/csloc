@@ -100,8 +100,22 @@ void csloc____get_sub_dirs(const char *dir,char *names[],enum cfs____file_or_dir
 		if(de->d_type == DT_DIR)
 #endif
 			fd[cnt]=DIRECTORY;
-		else
+		else if
+#ifdef _WIN32
+		(wff.dwFileAttributes & FILE_ATTRIBUTE_NORMAL)
+#else
+		(de->d_type == DT_REG)
+#endif
 			fd[cnt]=NFILE;
+		else if
+#ifdef _WIN32
+		(wff.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT)
+#else
+		(de->d_type == DT_LNK)
+#endif
+			fd[cnt]=CSLOCSYMLINK;
+		else
+			fd[cnt]=CSLOCOTHER;
 		++cnt;
 #ifndef _WIN32
 		de = readdir(dr);

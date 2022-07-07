@@ -184,7 +184,7 @@ long
 csloc(const char *dir, csloc_filenp *dat, size_t *sz, unsigned ops, size_t cr, const char *const*fexts, size_t fel)
 {
 	// prepare to get the files and subdirectories
-	char subdir[3000];
+	char subdir[3000], lnpath[3000];
 	size_t len=strlen(dir), cnt=0;//csloc____cnt_sub_dirs(dir);
 	strcpy(subdir, dir);
 #ifdef _WIN32
@@ -258,6 +258,7 @@ csloc(const char *dir, csloc_filenp *dat, size_t *sz, unsigned ops, size_t cr, c
 			strcpy(subdir + len + 1, names[i]);
 
 			// get rid of hidden files if enabled
+			redirect:
 			if(CSLOC_ISIGNDOT(ops) && names[i][0] == '.')
 				continue;
 
@@ -313,26 +314,45 @@ csloc(const char *dir, csloc_filenp *dat, size_t *sz, unsigned ops, size_t cr, c
 				}
 				continue;
 			}
-
-			// get rid of parent and self
-			if(strcmp(".", names[i]) == 0 || strcmp("..", names[i]) == 0)
-				continue;
-
-			if(fcnt==rm)
+			else if(DIRECTORY==tps[i])
 			{
-				stack=realloc(stack, (rm+olr)*sizeof(char*));
-				csloc_check_pointer(stack);
-				fcnt=olr;
-				olr=rm;
-				rm+=fcnt;
-				fcnt=olr;
-			}
+				// get rid of parent and self
+				if(strcmp(".", names[i]) == 0 || strcmp("..", names[i]) == 0)
+					continue;
 
-			stack[fcnt]=malloc(len + strlen(names[i]) + 2);
-			csloc_check_pointer(stack[fcnt]);
-			strcpy(stack[fcnt], subdir);
-			fcnt++;
-			free(names[i]);
+				if(fcnt==rm)
+				{
+					stack=realloc(stack, (rm+olr)*sizeof(char*));
+					csloc_check_pointer(stack);
+					fcnt=olr;
+					olr=rm;
+					rm+=fcnt;
+					fcnt=olr;
+				}
+
+				stack[fcnt]=malloc(strlen(subdir) + 2);
+				csloc_check_pointer(stack[fcnt]);
+				strcpy(stack[fcnt], subdir);
+				fcnt++;
+				free(names[i]);
+			}
+			else if(CSLOCSYMLINK==tps[i])
+			{
+				realpath(subdir, lnpath);
+				strcpy(subdir, lnpath);
+				if(stat(subdir, &fdat) == 0)
+				{
+					if(S_ISDIR(fdat.st_mode))
+						tps[i]=DIRECTORY;
+					else if(S_ISREG(fdat.st_mode))
+						tps[i]=NFILE;
+					else
+						tps[i]=CSLOCOTHER;
+					goto redirect;
+				}
+				else
+					fprintf(stderr, "Could not stat %s.\n", subdir);
+			}
 		}
 
 		free(names);
