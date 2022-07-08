@@ -34,6 +34,22 @@ static inline int has_file_extension(const char *fname, const char *ext)
 		return status;
 	}
 }
+int csloc____ispref(const char *pref, const char *str)
+{
+	int p = 1;
+	for(; *pref != '\0'; ++pref, ++str)
+	{
+		if(*str == '\0')
+		{
+			p = 0;
+			pref = str - 1;
+		}
+		else if(*pref != *str)
+			p = 0;
+
+	}
+	return p;
+}
 #ifdef _WIN32
 long long
 #else
@@ -185,6 +201,7 @@ csloc(const char *dir, csloc_filenp *dat, size_t *sz, unsigned ops, size_t cr, c
 {
 	// prepare to get the files and subdirectories
 	char subdir[3000], lnpath[3000];
+	char *apath=NULL;
 	size_t len=strlen(dir), cnt=0;//csloc____cnt_sub_dirs(dir);
 	strcpy(subdir, dir);
 #ifdef _WIN32
@@ -238,12 +255,6 @@ csloc(const char *dir, csloc_filenp *dat, size_t *sz, unsigned ops, size_t cr, c
 		len=strlen(currf), cnt=csloc____cnt_sub_dirs(currf);
 		if(cnt <= 2)
 			continue;
-		strcpy(subdir, currf);
-#ifdef _WIN32
-		subdir[len]='\\';
-#else
-		subdir[len]='/';
-#endif
 
 		// get subdirectories and files
 		names=malloc(sizeof(char*)*cnt);
@@ -255,12 +266,21 @@ csloc(const char *dir, csloc_filenp *dat, size_t *sz, unsigned ops, size_t cr, c
 		// put all subdirectories in
 		for(size_t i = 0; i < cnt; ++i)
 		{
+			strcpy(subdir, currf);
+#ifdef _WIN32
+			subdir[len]='\\';
+#else
+			subdir[len]='/';
+#endif
 			strcpy(subdir + len + 1, names[i]);
 
 			// get rid of hidden files if enabled
 			redirect:
 			if(CSLOC_ISIGNDOT(ops) && names[i][0] == '.')
+			{
+				free(names[i]);
 				continue;
+			}
 
 			if(NFILE==tps[i])
 			{
@@ -312,47 +332,62 @@ csloc(const char *dir, csloc_filenp *dat, size_t *sz, unsigned ops, size_t cr, c
 					}
 					sloc += sfl;
 				}
-				continue;
 			}
 			else if(DIRECTORY==tps[i])
 			{
 				// get rid of parent and self
-				if(strcmp(".", names[i]) == 0 || strcmp("..", names[i]) == 0)
-					continue;
-
-				if(fcnt==rm)
+				if(strcmp(".", names[i]) != 0 && strcmp("..", names[i]) != 0)
 				{
-					stack=realloc(stack, (rm+olr)*sizeof(char*));
-					csloc_check_pointer(stack);
-					fcnt=olr;
-					olr=rm;
-					rm+=fcnt;
-					fcnt=olr;
-				}
+					realpath(subdir, lnpath);
+					if(apath==NULL)
+						apath=realpath(dir,apath);
 
-				stack[fcnt]=malloc(strlen(subdir) + 2);
-				csloc_check_pointer(stack[fcnt]);
-				strcpy(stack[fcnt], subdir);
-				fcnt++;
-				free(names[i]);
+					if(strcmp(apath, lnpath) != 0)
+					{
+						if(fcnt==rm)
+						{
+							stack=realloc(stack, (rm+olr)*sizeof(char*));
+							csloc_check_pointer(stack);
+							fcnt=olr;
+							olr=rm;
+							rm+=fcnt;
+							fcnt=olr;
+						}
+
+						stack[fcnt]=malloc(strlen(subdir) + 2);
+						csloc_check_pointer(stack[fcnt]);
+						strcpy(stack[fcnt], subdir);
+						fcnt++;
+					}
+				}
 			}
 			else if(CSLOCSYMLINK==tps[i])
 			{
 				realpath(subdir, lnpath);
-				strcpy(subdir, lnpath);
-				if(stat(subdir, &fdat) == 0)
+				if(apath==NULL)
+					apath=realpath(dir,apath);
+				if(!csloc____ispref(apath, lnpath))
 				{
-					if(S_ISDIR(fdat.st_mode))
-						tps[i]=DIRECTORY;
-					else if(S_ISREG(fdat.st_mode))
-						tps[i]=NFILE;
-					else
-						tps[i]=CSLOCOTHER;
-					goto redirect;
+					strcpy(subdir, lnpath);
+					realpath(currf, lnpath);
+					if(!csloc____ispref(lnpath, subdir))
+					{
+						if(stat(subdir, &fdat)==0)
+						{
+							if(S_ISDIR(fdat.st_mode))
+								tps[i]=DIRECTORY;
+							else if(S_ISREG(fdat.st_mode))
+								tps[i]=NFILE;
+							else
+								tps[i]=CSLOCOTHER;
+							goto redirect;
+						}
+						else
+							fprintf(stderr, "Could not stat %s.\n", subdir);
+					}
 				}
-				else
-					fprintf(stderr, "Could not stat %s.\n", subdir);
 			}
+			free(names[i]);
 		}
 
 		free(names);
@@ -360,6 +395,8 @@ csloc(const char *dir, csloc_filenp *dat, size_t *sz, unsigned ops, size_t cr, c
 		free(currf);
 	}
 	free(stack);
+	if(apath)
+		free(apath);
 	if(CSLOC_ISSIF(ops))
 	{
 		csloc_sort_filen(CSLOC_ISSORT(ops), d, datsz);

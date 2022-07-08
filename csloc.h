@@ -28,6 +28,7 @@ struct csloc_file_entry
 };
 typedef struct csloc_file_entry csloc_filen;
 typedef struct csloc_file_entry *csloc_filenp;
+int csloc____ispref(const char *pref, const char *str);
 int csloc____case_insensitive_strcmp(const char *xstr, const char *ystr);
 void csloc_sort_filen(int val, csloc_filenp arr, size_t sz);
 #ifdef _WIN32

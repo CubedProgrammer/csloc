@@ -17,7 +17,7 @@
 #endif
 #include"csloc.h"
 #define VERSION_MINOR "8"
-#define VERSION_PATCH "2"
+#define VERSION_PATCH "3"
 int main(int argl,char*argv[])
 {
 	if(argl==1)
@@ -31,7 +31,7 @@ int main(int argl,char*argv[])
 		puts("-n to list the number before the path in -qs mode.");
 		puts("-r to sort least to greatest.");
 		puts("-f to count file size instead.");
-		puts("-t to sort the files by number of lines.");
+		puts("-t to sort the files by number of lines or size.");
 		puts("-s to show the sloc of individual files.");
 		puts("The options -r and -t automatically enable -s, -rs and -st are now redundant.");
 		puts("-h to not count files beginning with a ., such files are considered hidden on linux.");
