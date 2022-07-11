@@ -361,7 +361,7 @@ csloc(const char *dir, csloc_filenp *dat, size_t *sz, unsigned ops, size_t cr, c
 					}
 				}
 			}
-			else if(CSLOCSYMLINK==tps[i])
+			else if(!CSLOC_ISNOLNK(ops)&&CSLOCSYMLINK==tps[i])
 			{
 				realpath(subdir, lnpath);
 				if(apath==NULL)

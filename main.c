@@ -17,7 +17,7 @@
 #endif
 #include"csloc.h"
 #define VERSION_MINOR "8"
-#define VERSION_PATCH "3"
+#define VERSION_PATCH "4"
 int main(int argl,char*argv[])
 {
 	if(argl==1)
@@ -26,6 +26,7 @@ int main(int argl,char*argv[])
 		printf("csloc version 1.%s.%s\n",VERSION_MINOR,VERSION_PATCH);
 		printf("Usage: %s [OPTIONS...] FILES... [-x] [EXTENSIONS...]\nCommand line options...\n\n", argv[0]);
 		puts("If a file starts with '-', escape it with a \\, otherwise the first \\ of an argument is ignored.");
+		puts("-l to ignore symbolic links.");
 		puts("-o to write output to a file instead of stdout, the next argument MUST be that file.");
 		puts("-e to alternate colours in -s mode, making output easier to read.");
 		puts("-n to list the number before the path in -qs mode.");
@@ -95,6 +96,9 @@ int main(int argl,char*argv[])
 					currop = *it;
 					switch(currop)
 					{
+						case'l':
+							options |= CSLOC_NOLNK;
+							break;
 						case'o':
 							ofile = 1;
 							break;
@@ -124,7 +128,7 @@ int main(int argl,char*argv[])
 							break;
 						case'c':
 							cp = it + 1;
-							cr = strtoul(cp + 1, &numend, 10);
+							cr = strtoul(cp, &numend, 10);
 							it = numend - 1;
 							break;
 						default:

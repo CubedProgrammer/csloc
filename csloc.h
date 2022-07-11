@@ -15,12 +15,15 @@
 #define CSLOC_ISSORT(n)((n) & 010)
 #define CSLOC_ISFSIZE(n)((n) & 020)
 #define CSLOC_ISRSORT(n)((n) & 040)
+#define CSLOC_ISNOLNK(n)((n) & 0100)
 #define CSLOC_QUIET 1
 #define CSLOC_IGNDOT 2
 #define CSLOC_SIF 4
 #define CSLOC_SORT 014
 #define CSLOC_FSIZE 020
 #define CSLOC_RSORT 054
+#define CSLOC_NOLNK 0100
+
 struct csloc_file_entry
 {
 	size_t val;
