@@ -41,6 +41,7 @@ int main(int argl,char*argv[])
 		puts("-x to specify file extensions to count, without the . in the front.");
 		puts("This option must come last, as all other args after it are considered to be in the list of file extensions.");
 		puts("Add ! in front of an extension to forbid counting all files with that extension.");
+		puts("Example: 'csloc -r . -x h c' will count all files in current directory that end in .h or .c and list them in order of least to greatest.");
 	}
 	else
 	{
@@ -57,11 +58,19 @@ int main(int argl,char*argv[])
 		char *dir = NULL;
 		int ext = 0;
 		size_t cr = 1;
-		const char *cp;
+		const char *cp, *fileext;
 		char currop, *numend;
 		char numfirst = 0, colours = 0;
 		char ofile = 0;
 		int col = 0, dircnt = 0, extbegin = argl;
+		size_t *exttots = NULL;
+		size_t total;
+		csloc_filenp dat;
+		size_t datsz;
+		int isdir, dl;
+#ifndef _WIN32
+		struct stat fstat;
+#endif
 		for(int i = 1; i < argl; ++i)
 		{
 			if(ext)
@@ -96,6 +105,10 @@ int main(int argl,char*argv[])
 					currop = *it;
 					switch(currop)
 					{
+						case'y':
+							options |= CSLOC_SIF;
+							exttots = malloc(fel * sizeof(*exttots));
+							break;
 						case'l':
 							options |= CSLOC_NOLNK;
 							break;
@@ -143,29 +156,36 @@ int main(int argl,char*argv[])
 					++dir;
 				++dircnt;
 #ifdef _WIN32
-				int isdir = GetFileAttributesA(dir) & FILE_ATTRIBUTE_DIRECTORY;
+				isdir = GetFileAttributesA(dir) & FILE_ATTRIBUTE_DIRECTORY;
 #else
-				struct stat fstat;
 				stat(dir, &fstat);
-				int isdir = S_ISDIR(fstat.st_mode);
+				isdir = S_ISDIR(fstat.st_mode);
 #endif
-				int dl = strlen(dir);
+				dl = strlen(dir);
 #ifdef _WIN32
 				if(dir[dl - 1] == '\\')
 #else
 				if(dl > 1 && dir[dl - 1] == '/')
 #endif
 					dir[dl - 1] = '\0';
-				size_t total;
 				if(isdir)
 				{
-					csloc_filenp dat;
-					size_t datsz;
 					total = csloc(dir, &dat, &datsz, options, cr, fexts, fel);
 					if(CSLOC_ISSIF(options))
 					{
+						if(exttots)
+							memset(exttots, 0, fel * sizeof(*exttots));
 						for(size_t i = 0; i < datsz; ++i)
 						{
+							if(exttots)
+							{
+								fileext = csloc_get_ext(dat[i].name);
+								for(size_t j = 0; j < fel; ++j)
+								{
+									if(strcmp(fileext, fexts[j]) == 0)
+										exttots[j] += dat[i].val;
+								}
+							}
 							if(colours)
 								fprintf(ofh, "\033\133%im", col);
 							if(CSLOC_ISQUIET(options))

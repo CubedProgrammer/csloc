@@ -18,6 +18,20 @@
 #include<errno.h>
 #include<sys/stat.h>
 #endif
+const char *csloc_get_ext(const char *name)
+{
+	const char *ext = NULL;
+	for(const char *it = name; *it != '\0'; ++it)
+	{
+		if(*it == '.')
+			ext = it + 1;
+		else if(*it == '/')
+			ext = NULL;
+	}
+	if(*ext == '\0')
+		ext = NULL;
+	return ext;
+}
 static inline int has_file_extension(const char *fname, const char *ext)
 {
 	if(ext == NULL)
