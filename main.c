@@ -16,8 +16,8 @@
 #include<sys/stat.h>
 #endif
 #include"csloc.h"
-#define VERSION_MINOR "8"
-#define VERSION_PATCH "4"
+#define VERSION_MINOR "9"
+#define VERSION_PATCH "0-rc1"
 int main(int argl,char*argv[])
 {
 	if(argl==1)
@@ -26,6 +26,7 @@ int main(int argl,char*argv[])
 		printf("csloc version 1.%s.%s\n",VERSION_MINOR,VERSION_PATCH);
 		printf("Usage: %s [OPTIONS...] FILES... [-x] [EXTENSIONS...]\nCommand line options...\n\n", argv[0]);
 		puts("If a file starts with '-', escape it with a \\, otherwise the first \\ of an argument is ignored.");
+		puts("-y to show subtotals for each file type, this automatically enables -s.");
 		puts("-l to ignore symbolic links.");
 		puts("-o to write output to a file instead of stdout, the next argument MUST be that file.");
 		puts("-e to alternate colours in -s mode, making output easier to read.");
@@ -107,7 +108,8 @@ int main(int argl,char*argv[])
 					{
 						case'y':
 							options |= CSLOC_SIF;
-							exttots = malloc(fel * sizeof(*exttots));
+							if(fel != 0)
+								exttots = malloc(fel * sizeof(*exttots));
 							break;
 						case'l':
 							options |= CSLOC_NOLNK;
@@ -215,6 +217,11 @@ int main(int argl,char*argv[])
 						fprintf(ofh, "All files in %s combined have a grand total of %zu bytes.\n",dir,total);
 					else
 						fprintf(ofh, "All files in %s combined have %zu source lines of code.\n",dir,total);
+					if(exttots)
+					{
+						for(size_t j = 0; j < fel; ++j)
+							fprintf(ofh, "Total ending with .%s: %zu\n", fexts[j], exttots[j]);
+					}
 				}
 				else
 				{
@@ -232,6 +239,8 @@ int main(int argl,char*argv[])
 			puts("Specify a directory, run with no arguments for help message.");
 		if(fexts)
 			free(fexts);
+		if(exttots)
+			free(exttots);
 		if(ofh != stdout)
 			fclose(ofh);
 	}

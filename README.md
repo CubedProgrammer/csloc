@@ -14,11 +14,21 @@ You may need to modify the PATH variable in the settings and create a new direct
 
 You may put the executable in a system directory such as System32, and that may work, but is inadvisable.
 
-Having symbolic links may cause an infinite loop.
+Having symbolic links may cause an infinite loop. There is an option to disable them altogether though.
 
 If original directory to count is ~/u, and ~/u/v is a symbolic link to ~/v, and ~/v/x/y is a symbolic link to ~/v, there will be a loop.
 
 However, if all symbolic links to the files in the same directory, then there will be no infinite loop, and no file is counted twice.
+## Examples
+```
+csloc -qt folder -x h c
+```
+Count all the .h and .c files in folder, and display each file's counts, sorted greatest to least.
+```
+csloc -fr folder -x hpp cpp
+```
+Count all the .hpp and .cpp files in folder, and display the file size of each file, sorted least to greatest, with complete sentences.
+## Compilation
 ```
 clang -O3 -c csloc.c get_sub_dir.c main.c
 clang -o csloc csloc.o get_sub_dir.o main.o
