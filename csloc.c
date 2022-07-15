@@ -266,10 +266,14 @@ csloc(const char *dir, csloc_filenp *dat, size_t *sz, unsigned ops, size_t cr, c
 	{
 		// get last file
 		currf = stack[--fcnt];
-		len=strlen(currf), cnt=csloc____cnt_sub_dirs(currf);
+		cnt=csloc____cnt_sub_dirs(currf);
 		if(cnt <= 2)
+		{
+			free(currf);
 			continue;
+		}
 
+		len=strlen(currf);
 		// get subdirectories and files
 		names=malloc(sizeof(char*)*cnt);
 		csloc_check_pointer(names);

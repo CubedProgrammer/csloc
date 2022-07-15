@@ -38,6 +38,8 @@ int csloc____cnt_sub_dirs(const char *dir)
 	{
 		if(errno == EACCES)
 			fprintf(stderr, "Could not go into %s, permission denied, maybe try running as superuser.\n", search);
+		else
+			perror("Opening directory failed.");
 		goto fini;
 	}
 	struct dirent *de = readdir(dr);
