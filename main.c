@@ -17,7 +17,7 @@
 #endif
 #include"csloc.h"
 #define VERSION_MINOR "9"
-#define VERSION_PATCH "0"
+#define VERSION_PATCH "1"
 int main(int argl,char*argv[])
 {
 	if(argl==1)
@@ -26,7 +26,7 @@ int main(int argl,char*argv[])
 		printf("csloc version 1.%s.%s\n",VERSION_MINOR,VERSION_PATCH);
 		printf("Usage: %s [OPTIONS...] FILES... [-x] [EXTENSIONS...]\nCommand line options...\n\n", argv[0]);
 		puts("If a file starts with '-', escape it with a \\, otherwise the first \\ of an argument is ignored.");
-		puts("-y to show subtotals for each file type, this automatically enables -s.");
+		puts("-y to show subtotals for each file type");
 		puts("-l to ignore symbolic links.");
 		puts("-o to write output to a file instead of stdout, the next argument MUST be that file.");
 		puts("-e to alternate colours in -s mode, making output easier to read.");
@@ -62,7 +62,7 @@ int main(int argl,char*argv[])
 		const char *cp, *fileext;
 		char currop, *numend;
 		char numfirst = 0, colours = 0;
-		char ofile = 0;
+		char ofile = 0, truesif = 0;
 		int col = 0, dircnt = 0, extbegin = argl;
 		size_t *exttots = NULL;
 		size_t total;
@@ -125,15 +125,18 @@ int main(int argl,char*argv[])
 							break;
 						case'r':
 							options |= CSLOC_RSORT;
+							truesif = 1;
 							break;
 						case'f':
 							options |= CSLOC_FSIZE;
 							break;
 						case't':
 							options |= CSLOC_SORT;
+							truesif = 1;
 							break;
 						case's':
 							options |= CSLOC_SIF;
+							truesif = 1;
 							break;
 						case'h':
 							options |= CSLOC_IGNDOT;
@@ -188,6 +191,8 @@ int main(int argl,char*argv[])
 										exttots[j] += dat[i].val;
 								}
 							}
+							if(!truesif)
+								goto freedat;
 							if(colours)
 								fprintf(ofh, "\033\133%im", col);
 							if(CSLOC_ISQUIET(options))
@@ -204,6 +209,7 @@ int main(int argl,char*argv[])
 								else
 									fprintf(ofh, "File %s has %zu source lines of code.\n", dat[i].name, dat[i].val);
 							}
+							freedat:
 							free(dat[i].name);
 							col = col == 0 ? 36 : 0;
 						}
