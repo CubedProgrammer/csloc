@@ -17,7 +17,7 @@
 #endif
 #include"csloc.h"
 #define VERSION_MINOR "9"
-#define VERSION_PATCH "1"
+#define VERSION_PATCH "2"
 int main(int argl,char*argv[])
 {
 	if(argl==1)
@@ -218,7 +218,12 @@ int main(int argl,char*argv[])
 							fputs("\033\133m", ofh);
 					}
 					if(CSLOC_ISQUIET(options))
-						fprintf(ofh, "%zu\n", total);
+					{
+						if(numfirst)
+							fprintf(ofh, "%zu %s\n", total, dir);
+						else
+							fprintf(ofh, "%s %zu\n", dir, total);
+					}
 					else if(CSLOC_ISFSIZE(options))
 						fprintf(ofh, "All files in %s combined have a grand total of %zu bytes.\n",dir,total);
 					else
@@ -233,7 +238,12 @@ int main(int argl,char*argv[])
 				{
 					total = cnt_single_file(dir, cr);
 					if(CSLOC_ISQUIET(options))
-						fprintf(ofh, "%zu\n", total);
+					{
+						if(numfirst)
+							fprintf(ofh, "%zu %s\n", total, dir);
+						else
+							fprintf(ofh, "%s %zu\n", dir, total);
+					}
 					else if(CSLOC_ISFSIZE(options))
 						fprintf(ofh, "The file %s has %zu bytes.\n",dir,total);
 					else
