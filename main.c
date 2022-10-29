@@ -17,7 +17,7 @@
 #endif
 #include"csloc.h"
 #define VERSION_MINOR "9"
-#define VERSION_PATCH "2"
+#define VERSION_PATCH "3"
 int main(int argl,char*argv[])
 {
 	if(argl==1)
@@ -39,6 +39,7 @@ int main(int argl,char*argv[])
 		puts("-h to not count files beginning with a ., such files are considered hidden on linux.");
 		puts("-cNUM specifies that NUM non-whitespace characters are required to count as a valid line.");
 		puts("-q to not output complete sentences.");
+		puts("-u to not show the file names, only the numbers.");
 		puts("-x to specify file extensions to count, without the . in the front.");
 		puts("This option must come last, as all other args after it are considered to be in the list of file extensions.");
 		puts("Add ! in front of an extension to forbid counting all files with that extension.");
@@ -106,6 +107,9 @@ int main(int argl,char*argv[])
 					currop = *it;
 					switch(currop)
 					{
+						case'u':
+							options |= CSLOC_ULTRAQUIET;
+							break;
 						case'y':
 							options |= CSLOC_SIF;
 							if(fel != 0)
@@ -197,7 +201,9 @@ int main(int argl,char*argv[])
 								fprintf(ofh, "\033\133%im", col);
 							if(CSLOC_ISQUIET(options))
 							{
-								if(numfirst)
+								if(CSLOC_ISUQUIET(options))
+									fprintf(ofh, "%zu\n", dat[i].val);
+								else if(numfirst)
 									fprintf(ofh, "%zu %s\n", dat[i].val, dat[i].name);
 								else
 									fprintf(ofh, "%s %zu\n", dat[i].name, dat[i].val);
@@ -219,7 +225,9 @@ int main(int argl,char*argv[])
 					}
 					if(CSLOC_ISQUIET(options))
 					{
-						if(numfirst)
+						if(CSLOC_ISUQUIET(options))
+							fprintf(ofh, "%zu\n", total);
+						else if(numfirst)
 							fprintf(ofh, "%zu %s\n", total, dir);
 						else
 							fprintf(ofh, "%s %zu\n", dir, total);
@@ -239,7 +247,9 @@ int main(int argl,char*argv[])
 					total = cnt_single_file(dir, cr);
 					if(CSLOC_ISQUIET(options))
 					{
-						if(numfirst)
+						if(CSLOC_ISUQUIET(options))
+							fprintf(ofh, "%zu\n", total);
+						else if(numfirst)
 							fprintf(ofh, "%zu %s\n", total, dir);
 						else
 							fprintf(ofh, "%s %zu\n", dir, total);
