@@ -237,7 +237,7 @@ csloc(const char *dir, csloc_filenp *dat, size_t *sz, unsigned ops, size_t cr, c
 #else
 	long long sloc = 0;
 #endif
-	int sfl;
+	long sfl;
 	int valid;
 
 	// store data if requested
@@ -379,30 +379,56 @@ csloc(const char *dir, csloc_filenp *dat, size_t *sz, unsigned ops, size_t cr, c
 					}
 				}
 			}
-			else if(!CSLOC_ISNOLNK(ops)&&CSLOCSYMLINK==tps[i])
+			else if(CSLOCSYMLINK==tps[i])
 			{
-				realpath(subdir, lnpath);
-				if(apath==NULL)
-					apath=realpath(dir,apath);
-				if(!csloc____ispref(apath, lnpath))
+				if(!CSLOC_ISNOLNK(ops))
 				{
-					strcpy(subdir, lnpath);
-					realpath(currf, lnpath);
-					if(!csloc____ispref(lnpath, subdir))
+					realpath(subdir, lnpath);
+					if(apath==NULL)
+						apath=realpath(dir,apath);
+					if(!csloc____ispref(apath, lnpath))
 					{
-						if(stat(subdir, &fdat)==0)
+						strcpy(subdir, lnpath);
+						realpath(currf, lnpath);
+						if(!csloc____ispref(lnpath, subdir))
 						{
-							if(S_ISDIR(fdat.st_mode))
-								tps[i]=DIRECTORY;
-							else if(S_ISREG(fdat.st_mode))
-								tps[i]=NFILE;
+							if(stat(subdir, &fdat)==0)
+							{
+								if(S_ISDIR(fdat.st_mode))
+									tps[i]=DIRECTORY;
+								else if(S_ISREG(fdat.st_mode))
+									tps[i]=NFILE;
+								else
+									tps[i]=CSLOCOTHER;
+								goto redirect;
+							}
 							else
-								tps[i]=CSLOCOTHER;
-							goto redirect;
+								fprintf(stderr, "Could not stat %s.\n", subdir);
 						}
-						else
-							fprintf(stderr, "Could not stat %s.\n", subdir);
 					}
+				}
+				else
+				{
+					if(CSLOC_ISFSIZE(ops))
+					{
+						lstat(subdir, &fdat);
+						sfl = fdat.st_size;
+					}
+					else
+						sfl = 1;
+					if(CSLOC_ISSIF(ops))
+					{
+						if(datsz == datc)
+						{
+							datc += datc >> 1;
+							d = realloc(d, sizeof(*d) * datc);
+						}
+						d[datsz].val = sfl;
+						d[datsz].name = malloc(strlen(subdir) + 1);
+						strcpy(d[datsz].name, subdir);
+						++datsz;
+					}
+					sloc += sfl;
 				}
 			}
 			free(names[i]);

@@ -17,7 +17,7 @@
 #endif
 #include"csloc.h"
 #define VERSION_MINOR "9"
-#define VERSION_PATCH "3"
+#define VERSION_PATCH "4"
 int main(int argl,char*argv[])
 {
 	if(argl==1)
