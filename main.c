@@ -17,7 +17,7 @@
 #endif
 #include"csloc.h"
 #define VERSION_MINOR "9"
-#define VERSION_PATCH "4"
+#define VERSION_PATCH "5-rc1"
 int main(int argl,char*argv[])
 {
 	if(argl==1)
@@ -189,10 +189,13 @@ int main(int argl,char*argv[])
 							if(exttots)
 							{
 								fileext = csloc_get_ext(dat[i].name);
-								for(size_t j = 0; j < fel; ++j)
+								if(fileext != NULL)
 								{
-									if(strcmp(fileext, fexts[j]) == 0)
-										exttots[j] += dat[i].val;
+									for(size_t j = 0; j < fel; ++j)
+									{
+										if(strcmp(fileext, fexts[j]) == 0)
+											exttots[j] += dat[i].val;
+									}
 								}
 							}
 							if(!truesif)

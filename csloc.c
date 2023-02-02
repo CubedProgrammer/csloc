@@ -300,7 +300,41 @@ csloc(const char *dir, csloc_filenp *dat, size_t *sz, unsigned ops, size_t cr, c
 				continue;
 			}
 
-			if(NFILE==tps[i])
+			if(CSLOCSYMLINK==tps[i])
+			{
+				if(!CSLOC_ISNOLNK(ops))
+				{
+					realpath(subdir, lnpath);
+					if(apath==NULL)
+						apath=realpath(dir,apath);
+					if(!csloc____ispref(apath, lnpath))
+					{
+						strcpy(subdir, lnpath);
+						realpath(currf, lnpath);
+						if(!csloc____ispref(lnpath, subdir))
+						{
+							if(stat(subdir, &fdat)==0)
+							{
+								if(S_ISDIR(fdat.st_mode))
+									tps[i]=DIRECTORY;
+								else if(S_ISREG(fdat.st_mode))
+									tps[i]=NFILE;
+								else
+									tps[i]=CSLOCOTHER;
+								goto redirect;
+							}
+							else
+								fprintf(stderr, "Could not stat %s.\n", subdir);
+						}
+					}
+				}
+				else if(CSLOC_ISFSIZE(ops))
+				{
+					tps[i] = NFILE;
+					goto redirect;
+				}
+			}
+			else if(NFILE==tps[i])
 			{
 				valid = fel == 0 ? 1 : 0;
 				for(size_t j = 0; j < fel; ++j)
@@ -328,7 +362,7 @@ csloc(const char *dir, csloc_filenp *dat, size_t *sz, unsigned ops, size_t cr, c
 						sz = (sz << 32) + fdat.nFileSizeLow;
 						sfl = sz;
 #else
-						if(stat(subdir, &fdat) == 0)
+						if(lstat(subdir, &fdat) == 0)
 							sfl = fdat.st_size;
 						else
 							sfl = 0;
@@ -377,58 +411,6 @@ csloc(const char *dir, csloc_filenp *dat, size_t *sz, unsigned ops, size_t cr, c
 						strcpy(stack[fcnt], subdir);
 						fcnt++;
 					}
-				}
-			}
-			else if(CSLOCSYMLINK==tps[i])
-			{
-				if(!CSLOC_ISNOLNK(ops))
-				{
-					realpath(subdir, lnpath);
-					if(apath==NULL)
-						apath=realpath(dir,apath);
-					if(!csloc____ispref(apath, lnpath))
-					{
-						strcpy(subdir, lnpath);
-						realpath(currf, lnpath);
-						if(!csloc____ispref(lnpath, subdir))
-						{
-							if(stat(subdir, &fdat)==0)
-							{
-								if(S_ISDIR(fdat.st_mode))
-									tps[i]=DIRECTORY;
-								else if(S_ISREG(fdat.st_mode))
-									tps[i]=NFILE;
-								else
-									tps[i]=CSLOCOTHER;
-								goto redirect;
-							}
-							else
-								fprintf(stderr, "Could not stat %s.\n", subdir);
-						}
-					}
-				}
-				else
-				{
-					if(CSLOC_ISFSIZE(ops))
-					{
-						lstat(subdir, &fdat);
-						sfl = fdat.st_size;
-					}
-					else
-						sfl = 1;
-					if(CSLOC_ISSIF(ops))
-					{
-						if(datsz == datc)
-						{
-							datc += datc >> 1;
-							d = realloc(d, sizeof(*d) * datc);
-						}
-						d[datsz].val = sfl;
-						d[datsz].name = malloc(strlen(subdir) + 1);
-						strcpy(d[datsz].name, subdir);
-						++datsz;
-					}
-					sloc += sfl;
 				}
 			}
 			free(names[i]);
