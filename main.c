@@ -27,7 +27,7 @@ int main(int argl,char*argv[])
 		printf("Usage: %s [OPTIONS...] FILES... [-x] [EXTENSIONS...]\nCommand line options...\n\n", argv[0]);
 		puts("If a file starts with '-', escape it with a \\, otherwise the first \\ of an argument is ignored.");
 		puts("-y to show subtotals for each file type");
-		puts("-l to ignore symbolic links.");
+		puts("-l to treat symbolic links as regular files.");
 		puts("-o to write output to a file instead of stdout, the next argument MUST be that file.");
 		puts("-e to alternate colours in -s mode, making output easier to read.");
 		puts("-n to list the number before the path in -qs mode.");
@@ -152,6 +152,15 @@ int main(int argl,char*argv[])
 							cp = it + 1;
 							cr = strtoul(cp, &numend, 10);
 							it = numend - 1;
+							break;
+						case'-':
+							if(it == argv[i] + 1)
+							{
+								if(strcmp(++it, "version") == 0)
+									printf("%s version 1.%s.%s\n", argv[0], VERSION_MINOR, VERSION_PATCH);
+								for(;*it != '\0'; ++it);
+								--it;
+							}
 							break;
 						default:
 							fprintf(stderr, "Unrecognized option -%c, it will be ignored.\n", currop);

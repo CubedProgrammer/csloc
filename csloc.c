@@ -301,12 +301,19 @@ csloc(const char *dir, csloc_filenp *dat, size_t *sz, unsigned ops, size_t cr, c
 			}
 
 			if(CSLOCSYMLINK==tps[i])
+#ifdef _WIN32
+			{
+				tps[i] = NFILE;
+				goto redirect;
+			}
+#else
 			{
 				if(!CSLOC_ISNOLNK(ops))
 				{
 					realpath(subdir, lnpath);
-					if(apath==NULL)
-						apath=realpath(dir,apath);
+					if(apath!=NULL)
+						free(apath);
+					apath=realpath(dir,NULL);
 					if(!csloc____ispref(apath, lnpath))
 					{
 						strcpy(subdir, lnpath);
@@ -334,6 +341,7 @@ csloc(const char *dir, csloc_filenp *dat, size_t *sz, unsigned ops, size_t cr, c
 					goto redirect;
 				}
 			}
+#endif
 			else if(NFILE==tps[i])
 			{
 				valid = fel == 0 ? 1 : 0;
@@ -390,26 +398,21 @@ csloc(const char *dir, csloc_filenp *dat, size_t *sz, unsigned ops, size_t cr, c
 				// get rid of parent and self
 				if(strcmp(".", names[i]) != 0 && strcmp("..", names[i]) != 0)
 				{
-					realpath(subdir, lnpath);
-					if(apath==NULL)
-						apath=realpath(dir,apath);
-
-					if(strcmp(apath, lnpath) != 0)
+					if(fcnt==rm)
 					{
-						if(fcnt==rm)
-						{
-							stack=realloc(stack, (rm+olr)*sizeof(char*));
-							csloc_check_pointer(stack);
-							fcnt=olr;
-							olr=rm;
-							rm+=fcnt;
-							fcnt=olr;
-						}
+						stack=realloc(stack, (rm+olr)*sizeof(char*));
+						csloc_check_pointer(stack);
+						fcnt=olr;
+						olr=rm;
+						rm+=fcnt;
+						fcnt=olr;
+					}
 
-						stack[fcnt]=malloc(strlen(subdir) + 2);
-						csloc_check_pointer(stack[fcnt]);
-						strcpy(stack[fcnt], subdir);
-						fcnt++;
+					stack[fcnt]=malloc(strlen(subdir) + 2);
+					csloc_check_pointer(stack[fcnt]);
+					strcpy(stack[fcnt], subdir);
+					fcnt++;
+					{
 					}
 				}
 			}
