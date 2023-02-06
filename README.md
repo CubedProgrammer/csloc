@@ -2,8 +2,6 @@
 ## Counts lines of code of certain file types in a directory in Linux
 Simply compiling the C files directly will do.
 
-Theoretically, version 1.8.2 and older work on windows.
-
 To install, simply copy the executable file to /usr/bin or /usr/local/bin on BSD, Linux, or OS X.
 
 On Windows, there is no predefined folder for storing executables, unless you count System32 and related.
@@ -25,9 +23,11 @@ csloc -qt folder -x h c
 ```
 Count all the .h and .c files in folder, and display each file's counts, sorted greatest to least.
 ```
-csloc -fr folder -x hpp cpp
+csloc -flry folder -x hpp cpp
 ```
-Count all the .hpp and .cpp files in folder, and display the file size of each file, sorted least to greatest, with complete sentences.
+Count all the .hpp and .cpp files in folder, and display the file size of each file (-f option), sorted least to greatest (-r option), with complete sentences.
+Then gets the total size of all .hpp files and the total for .cpp files, displays both, from -y option.
+Treats symbolic links as regular files, from -l option.
 ## Compilation
 ```
 clang -O3 -c csloc.c get_sub_dir.c main.c

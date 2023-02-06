@@ -1,5 +1,5 @@
 // This file is part of csloc.
-// Copyright (C) 2020-2022, github.com/CubedProgrammer, owner of said account.
+// Copyright (C) 2020-2023, github.com/CubedProgrammer, owner of said account.
 
 // csloc is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
@@ -428,7 +428,8 @@ csloc(const char *dir, csloc_filenp *dat, size_t *sz, unsigned ops, size_t cr, c
 		free(apath);
 	if(CSLOC_ISSIF(ops))
 	{
-		csloc_sort_filen(CSLOC_ISSORT(ops), d, datsz);
+		if(datsz)
+			csloc_sort_filen(CSLOC_ISSORT(ops), d, datsz);
 		if(CSLOC_ISRSORT(ops))
 		{
 			csloc_filen tmp;

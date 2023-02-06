@@ -1,5 +1,5 @@
 // This file is part of csloc.
-// Copyright (C) 2020-2022, github.com/CubedProgrammer, owner of said account.
+// Copyright (C) 2020-2023, github.com/CubedProgrammer, owner of said account.
 
 // csloc is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
@@ -17,17 +17,19 @@
 #endif
 #include"csloc.h"
 #define VERSION_MINOR "9"
-#define VERSION_PATCH "5-rc1"
+#define VERSION_PATCH "5"
 int main(int argl,char*argv[])
 {
 	if(argl==1)
 	{
 		help:
-		printf("csloc version 1.%s.%s\n",VERSION_MINOR,VERSION_PATCH);
-		printf("Usage: %s [OPTIONS...] FILES... [-x] [EXTENSIONS...]\nCommand line options...\n\n", argv[0]);
+		printf("%s version 1.%s.%s\n",*argv,VERSION_MINOR,VERSION_PATCH);
+		printf("Usage: %s [OPTIONS...] FILES/DIRECTORIES... [-x] [EXTENSIONS...]\nCommand line options...\n\n", argv[0]);
 		puts("If a file starts with '-', escape it with a \\, otherwise the first \\ of an argument is ignored.");
 		puts("-y to show subtotals for each file type");
+#ifndef _WIN32
 		puts("-l to treat symbolic links as regular files.");
+#endif
 		puts("-o to write output to a file instead of stdout, the next argument MUST be that file.");
 		puts("-e to alternate colours in -s mode, making output easier to read.");
 		puts("-n to list the number before the path in -qs mode.");

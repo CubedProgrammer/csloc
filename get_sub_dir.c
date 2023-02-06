@@ -1,5 +1,5 @@
 // This file is part of csloc.
-// Copyright (C) 2020-2022, github.com/CubedProgrammer, owner of said account.
+// Copyright (C) 2020-2023, github.com/CubedProgrammer, owner of said account.
 
 // csloc is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
@@ -117,7 +117,12 @@ void csloc____get_sub_dirs(const char *dir,char *names[],enum cfs____file_or_dir
 #endif
 			fd[cnt]=CSLOCSYMLINK;
 		else
+#ifdef _WIN32
+			fd[cnt]=NFILE;
+#else
 			fd[cnt]=CSLOCOTHER;
+#endif
+
 		++cnt;
 #ifndef _WIN32
 		de = readdir(dr);
